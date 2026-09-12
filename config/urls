@@ -5,6 +5,7 @@
 "query:Privacy:tags # \"privacy\""
 
 # Technology
+https://jvns.ca/atom.xml "Julia Evans" ! tech
 https://tech.social/@joinloops.rss "~loops@tech.org" ! tech
 https://hachyderm.io/@simontatham.rss "~simontatham@hachyderm.io" ! tech
 https://fosstodon.org/@BastilleBSD.rss "~BastilleBSD@fosstodon.org" ! tech
