@@ -9,7 +9,7 @@ site_path = "/"
 title = "Liveboat RSS Feeds"
 # Update site url if you're planning on using aggregated OPML
 # channel Liveboat exposes.
-site_url = "rssfeed.antonialoytorrens.com"
+site_url = "http://rssfeed.antonialoytorrens.com"
 # Maximum number of days for which Liveboat will include
 # articles for.
 time_threshold = 40
