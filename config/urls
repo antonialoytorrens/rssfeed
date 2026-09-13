@@ -56,7 +56,8 @@ https://tech.social/@Mastodon.rss "~Mastodon@tech.social" ! tech
 https://tilvids.com/feeds/videos.xml?videoChannelId=8978 "~solarus@tilvids.com" ! tech
 
 # Misc
-http://www.interviewswithinterestingpeople.com/feed/ "~Interviews with Interesting People" ! misc
+# Reason: RSS Feed does not exist
+#http://www.interviewswithinterestingpeople.com/feed/ "~Interviews with Interesting People" ! misc
 
 # DBalears
 https://www.dbalears.cat/autor/antonia-salas.rss "~Antònia Salas" ! dbalears
@@ -66,4 +67,5 @@ https://planet.debian.org/rss10.xml "~Planet Debian" ! linux
 https://www.debian.org/News/news "~Debian News" ! linux
 
 # Privacy
-http://theprivatecoffee.com/blog/index.xml "~The Private Coffee" ! privacy
+# Reason: Archived
+#http://theprivatecoffee.com/blog/index.xml "~The Private Coffee" ! privacy
