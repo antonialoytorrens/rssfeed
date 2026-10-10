@@ -1,4 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux</title><link>http://rssfeed.antonialoytorrens.com</link><description></description><item><title>Tim Retout: Reading my solar inverter over RS485</title><link>https://retout.co.uk/2026/10/10/zeversolar-esphome/</link><author>Tim Retout</author><category>linux</category><pubDate>Sat, 10 Oct 2026 11:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[For over ten years, the only way I have had of knowing what our solar
+<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux</title><link>http://rssfeed.antonialoytorrens.com</link><description></description><item><title>Steinar H. Gunderson: Decompilation patterns, part 7: if to condition</title><link>http://blog.sesse.net/blog/tech/2026-10-10-20-32_decompilation_patterns_part_7_if_to_condition.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Sat, 10 Oct 2026 18:45:29 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[A variation of the pattern from yesterday; say you have:if (x == 3) {
+    y = 0;
+} else {
+    y = 1;
+}
+When these are zero and one, sometimes this will give a better match,
+since booleans are evaluated as such:It's rare to have something  than zero or one work for this
+pattern (e.g. you would rarely write ).]]></content:encoded></item><item><title>Tim Retout: Reading my solar inverter over RS485</title><link>https://retout.co.uk/2026/10/10/zeversolar-esphome/</link><author>Tim Retout</author><category>linux</category><pubDate>Sat, 10 Oct 2026 11:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[For over ten years, the only way I have had of knowing what our solar
 panels are doing has been an impulse monitor on the generation meter,
 counting the flashes of its LED.  It has always been a bit flaky due
 to battery changes or loose connections, and there has never been a
@@ -87,7 +94,7 @@ interface were made too (Daniel in #104)Diagnostics for  and  are not
 suppressed per CRAN Policy (Dirk in #106
 closing #105)The continuous integration matrix was extended to
  version 15 and 16 (Dirk in #108
-closing #107)A few minor packaging nags were address (Dirk in #109)]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 6: If-add-else</title><link>http://blog.sesse.net/blog/tech/2026-10-09-17-06_decompilation_patterns_part_6_if_add_else.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Fri, 9 Oct 2026 15:30:22 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Often, m2c will spit out something like this:x = 3;
+closing #107)A few minor packaging nags were address (Dirk in #109)]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 6: If-add-else</title><link>http://blog.sesse.net/blog/tech/2026-10-09-17-06_decompilation_patterns_part_6_if_add_else.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Fri, 9 Oct 2026 16:06:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Often, m2c will spit out something like this:x = 3;
 if (a == 10) {
     x = 4;
 }
@@ -394,17 +401,7 @@ kdeconnect-cli --ring -d $DEVID
 kdeconnect-cli --ping-msg "this is the message" -d $DEVID
 # unlock and lock screen (only works on Debian devices for me not Android devices)
 kdeconnect-cli --unlock -d $DEVID
-kdeconnect-cli --lock -d $DEVIDThere doesn’t seem to be support for making phone calls via kdeconnect which is a significant omission. It’s a very common situation to want to call a number that’s listed on a web site or in some other data source that’s easier to access on a PC than on a phone. The clipboard could be used but that’s needless pain.]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns part 2: do-while</title><link>http://blog.sesse.net/blog/tech/2026-10-05-16-54_decompilation_patterns_part_2_do_while.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Mon, 5 Oct 2026 15:54:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Continuing our journey on decompilation patterns, here's another common one:
-Let's say m2c outputs code like this:loop_151:
-  ...
-  if (var_s0 > var_s1) goto loop_151;
-then the natural change is:do {
-  ...
-} while (var_s0 > var_s1);
-Fewer gotos are nearly always good, and this is a much more likely pattern
-than the original one.m2c often manages to convert gotos to do/while, but not always when they are
-e.g. nested in some other loop; so often, you may need to apply some other
-transformation before you get to this point.Tomorrow, we'll look at another variation over this topic.]]></content:encoded></item><item><title>Vincent Bernat: Hacking the Go compiler to efficiently map IPv4 to IPv6</title><link>https://vincent.bernat.ch/en/blog/2026-go-netip-addrto6</link><author>Vincent Bernat</author><category>linux</category><pubDate>Sun, 4 Oct 2026 14:12:19 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[ features an 
+kdeconnect-cli --lock -d $DEVIDThere doesn’t seem to be support for making phone calls via kdeconnect which is a significant omission. It’s a very common situation to want to call a number that’s listed on a web site or in some other data source that’s easier to access on a PC than on a phone. The clipboard could be used but that’s needless pain.]]></content:encoded></item><item><title>Vincent Bernat: Hacking the Go compiler to efficiently map IPv4 to IPv6</title><link>https://vincent.bernat.ch/en/blog/2026-go-netip-addrto6</link><author>Vincent Bernat</author><category>linux</category><pubDate>Sun, 4 Oct 2026 14:12:19 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[ features an 
 method returning the unwrapped IPv4 contained in an IPv4-mapped IPv6
 address: from  or , it returns
 . There is no  or  method for the reverse
