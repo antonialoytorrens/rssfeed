@@ -9,3 +9,16 @@ update:
 		chmod +x ./bin/liveboat; \
 	fi;
 	LIVEBOAT_TEMPLATE_DIR="$(TPL_PATH)" ./bin/liveboat -x update --config-file=./config/liveboat-config.toml
+
+# --- SonarQube ---
+ifneq (,$(wildcard ./.env))
+include .env
+export
+endif
+
+.PHONY: sonarqube
+sonarqube:
+	sonar-scanner \
+		-Dsonar.token=$(SONAR_TOKEN) \
+		-Dsonar.host.url=$(SONAR_HOST_URL) \
+		-Dsonar.projectKey=$(SONAR_PROJECT_KEY)
