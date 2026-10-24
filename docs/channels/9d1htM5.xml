@@ -1,27 +1,553 @@
-<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux</title><link>http://rssfeed.antonialoytorrens.com</link><description></description><item><title>Steinar H. Gunderson: Decompiler patterns, part 8: Un-repetition of conditions</title><link>http://blog.sesse.net/blog/tech/2026-10-11-16-07_decompilation_patterns_part_8_un_repetition_of_conditions.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Sun, 11 Oct 2026 14:15:22 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Today, for a slightly more complicated snippet, but still in the
-same general area; say you have code like this:x = (0x1000 - y) / 24;
-z = var_s5 < 5;
-if (x >= 0x81) {
-    x = 0x80;
-    z = var_s5 < 5;
+<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux</title><link>http://rssfeed.antonialoytorrens.com</link><description></description><item><title>Reproducible Builds (diffoscope): diffoscope 335 released</title><link>https://diffoscope.org/news/diffoscope-335-released/</link><author>Reproducible Builds (diffoscope)</author><category>linux</category><pubDate>Fri, 23 Oct 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The diffoscope maintainers are pleased to announce the release of diffoscope
+version . This version includes the following changes:[ Chris Lamb ]
+* Support the dumppdf binary being called dumppdf.py on the host system.
+* Update copyright years.
+* Fix a silly "prepend" typo.
+]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 18: Signed division</title><link>http://blog.sesse.net/blog/tech/2026-10-21-23-19_decompilation_patterns_part_18_signed_division.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Wed, 21 Oct 2026 21:30:20 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[As promised, the last one (for now?), and this one blew my mind the first
+time I saw it:    var_v0 = sp4014;
+    if ((s32) sp4014 < 0) {
+        var_v0 = sp4014 + 0x7FF;
+    }
+    temp_s1 = 0x800 - (sp4014 - (((s32) var_v0 >> 0xB) << 0xB));
+There's actually two things going on here. First, the compiler
+is faking a signed division using shifting (which rounds down) as a building block:
+If the value is negative, then you add a bias to make shift into round-up.
+(The right-shift by 0xB, or 11, is exactly a division by 0x800.)So this means what we're looking at is:    var_v0 = (s32) sp4014 / 0x800;
+    temp_s1 = 0x800 - (sp4014 - var_v0 * 0x800);
+which reduces further to:    temp_s1 = 0x800 - ((s32) sp4014 % 0x800);
+Tada. That's it. Now you know all the tricks, except those that I don't know
+or that I forgot. You don't need the LLM. Have fun. :-)Edit: Corrected a thinko; of course, MIPS has signed division.
+This is for power-of-two optimizations only.]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 17: Loop rotation</title><link>http://blog.sesse.net/blog/tech/2026-10-20-23-33_decompilation_patterns_part_17_loop_rotation.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Tue, 20 Oct 2026 22:33:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Occasionally, you'll see code like this (after initial cleanup):    var_v0_2 = crc & 0x80000000;
+    do {
+       if (var_v0_2 != 0) {
+           crc = (crc << 1) ^ 0x1EDC6F41;
+       } else {
+           crc <<= 1;
+       }
+       var_a0 += 1;
+       var_v0_2 = crc & 0x80000000;
+    } while (var_a0 < 8U);
+The thing with  is unnatural. GCC sometimes does these loop rotation tricks, seemingly
+to save registers (don't ask me how exactly it does). You want to un-rotate
+back into:    do {
+       var_v0_2 = crc & 0x80000000;
+       if (var_v0_2 != 0) {
+           crc = (crc << 1) ^ 0x1EDC6F41;
+       } else {
+           crc <<= 1;
+       }
+       var_a0 += 1;
+    } while (var_a0 < 8U);
+and then of course, you can clean up the rest:for (i = 0; i < 8; ++i) {
+    if (crc & 0x80000000) {
+        crc = (crc << 1) ^ 0x1EDC6F41;
+    } else {
+        crc <<= 1;
+    }
 }
-var_s4 = 0;
-if (z == 0) {
-In particular, note the  repeated. Most likely, this is the
-compiler sticking stuff into branch delay slots, or else re-checking the condition
-if  changed in the branches (it does not here). You almost certainly
-want to undo this into:x = (0x1000 - y) / 24;
-if (x >= 0x81) {
-    x = 0x80;
+Last one tomorrow, I think.]]></content:encoded></item><item><title>Thadeu Lima de Souza Cascardo: Restricting device memory usage on Linux 7.3</title><link>https://cascardo.eti.br/blog/dmem_cgroup_7.3/</link><author>Thadeu Lima de Souza Cascardo</author><category>linux</category><pubDate>Tue, 20 Oct 2026 17:19:57 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Linux cgroups has been used for a while to group processes and control their access to certain system resources. One of those resources is memory, through the use of memcg. That control is dynamic, allowing for cgroups to setup a minimal and a maximal amount of memory, as well as low and high thresholds, which will control the reclaim process.But what about device memory that is not available as system RAM? Memory that is not available to the Linux page allocator? One of those device memories is GPU VRAM.That's where the dmem cgroup controller comes in. Introduced in Linux 6.14, it was first adopted by the Intel Xe driver. In Linux 6.15, AMD amdgpu driver also adopted it. In 7.3, it was adopted by nouveau.Such a cgroup controller allows the system to be configured such that a workload, be it a browser, a game, or another GPU rendering process can have some minimal VRAM available. Or it can prevent one of these processes from using all VRAM, preventing your compositor from using it, for example.Let's go through the system knobs that are available to control this and what's new in Linux 7.3.dmem regions and dmem.capacitySince a given system might have multiple GPUs, there might be multiple device memory regions. So, on dmem, each such region is described by a name. Every dmem cgroup setting file will contain one line per region. One of those files shows the capacity of each region in bytes and is present only in the root cgroup.After enabling the dmem cgroup with the following command:# echo +dmem > /sys/fs/cgroup/cgroup.subtree_control
+One can inspect the capacity of any available regions by looking at  at the root cgroup:# cat /sys/fs/cgroup/dmem.capacity
+drm/0000:03:00.0/vram 8573157376
+That shows that the GPU at PCI address 0000:03:00.0 has a 8176MiB VRAM dmem region.When introduced at 6.14, the following settings were available.In every dmem cgroup, including the root cgroup, the dmem.current is a read-only file that shows the current usage of each region by the given cgroup.# cat /sys/fs/cgroup/user.slice/dmem.current
+drm/0000:03:00.0/vram 292757504
+Here, it shows that user.slice cgroup is currently using above 292 MB of VRAM.# cat /sys/fs/cgroup/dmem.current
+drm/0000:03:00.0/vram 311377920
+Here, we can check that total system usage is above 311 MB.Excluding the root cgroup, dmem cgroups can control the maximal number of bytes that can be allocated from a region by processes in that cgroup. If an allocation moves the usage above the max setting, it will be refused. In that case, the allocation might be attempted at system memory or it might trigger eviction, depending on the allocation parameters and the driver.Here, the  value has special meaning, which is unrestricted usage.# echo drm/0000:03:00.0/vram 536870912 > /sys/fs/cgroup/user.slice/dmem.max
+# cat /sys/fs/cgroup/user.slice/dmem.max
+drm/0000:03:00.0/vram 536870912
+# echo drm/0000:03:00.0/vram max > /sys/fs/cgroup/user.slice/dmem.max
+# cat /sys/fs/cgroup/user.slice/dmem.max
+drm/0000:03:00.0/vram max
+dmem.min, also not available on the root cgroup, will control the eviction process - when memory needs to be moved out of VRAM to make room for other VRAM allocations. If an object belongs to a cgroup which is using less than its min setting, it will not be considered for eviction. It effectively works as a hard protection such that the cgroup can use at least the minimal setting.Given multiple cgroups may set a minimal value that exceeds the device memory capacity, it computes an effective minimal depending on the hierarchy.While dmem.min works as a hard limit, dmem.low is a soft limit that will prevent eviction in case other objects from different cgroups are available for eviction. That is, the system will try to evict from different, possibly unprotected cgroups, before it tries to evict from a cgroup if evicting would leave its usage below the value set as dmem.low.Recent developments in Linux 7.3Some new changes have been recently introduced in the dmem cgroup controller and its integration with GPUs.One of those is a new read-only file, , which was introduced to allow the peak usage of a region in a cgroup to be inspected.Also, Linux 7.3 fixed certain scenarios where a given cgroup would not be able to allocate VRAM up to its minimal or low limits if other processes had already allocated most of VRAM, even though they had no such limits set.Changing multiple regions' settings in a single write was possible before 7.3, but it was prone to failures which would not be reported to userspace and might have left the values partially updated. Starting with 7.3, only one region may be updated per write.And, finally, prior to 7.3, setting  in a cgroup that was using more than the new setting would silently fail. Now, there is a mechanism that allows a reclaim mechanism to be triggered. That way, when a process writes to  and sets a maximal value below the current usage, it will wait (unless  is used) for the reclaim process to move objects out of VRAM until the usage gets below the maximal value. If that is not possible for some reason, the setting will still be in place, restricting further alloctions by that cgroup.]]></content:encoded></item><item><title>Russell Coker: Cixin Liu is a Bad Person</title><link>https://etbe.coker.com.au/2026/10/20/cixin-liu-bad-person/</link><author>etbe</author><category>linux</category><pubDate>Tue, 20 Oct 2026 08:11:59 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The Chinese author Cixin Liu [1] is most known for his book The Three Body Problem and it’s sequels. One of the main plot elements in the book is that every species in the universe is cool with genocide and willing to commit genocide as a preemptive strike against any star system found to contain intelligent life.It’s not unreasonable to think that some planets may be by run societies like that, if one star system in 10,000 had a technological society and one society in 10,000 is run by depraved autocratic governments that would make 1,000+ planets in our galaxy that are run by genocidal groups!To think that every single society wants to commit genocide at every opportunity says a lot about every person who makes such claims. If you believe that everyone wants to do something then it must be something you really want to do. If there’s something you really don’t want to do then you will be able to imagine a system of government where the majority of citizens vote against doing it.Even in the more horrible parts of human history there hasn’t been a genocide comparable to destroying and entire star system, genocide is usually based on slavery and large scale armed robbery. To just commit large scale genocide with a side effect of destroying valuable resources without any investigation or attempts at negotiation just based on fear of others is an extreme that I don’t think humans have reached in history.The Daleks are portrayed as a perverse extreme of xenophobia but even with the low budget SciFi trend of depicting aliens as mostly having a common belief system they managed to show some Daleks going against their system from time to time. Cixin Liu is a very talented writer but his attitude towards genocide has caused him to write SciFi with a major plot point that’s not great by Dr Who standards.Overall his short stories are much better than the three novels he is most known for. But he shows his ass in some of them too. One notable example is a short story where a significant plot point is declaring a “right to sex” (for men) which involves government sponsored sex workers. A “right to sex” conflicts with a sex workers right to refuse sex for a potential client who is undesirable in some way. Regardless of opinions on whether sex work should be permitted I hope that the vast majority of voters in every jurisdiction can agree that sex workers shouldn’t be forced to do things that they don’t want to do.Some writers like George Orwell create deliberately fictional scenarios that they hope to inspire opposition to bad ideas, I’m sure that many proposed laws have failed to get enacted after being described as “Orwellian”. But describing a fictional horror situation as inevitable is a way of driving support for such things. It’s particularly noteworthy when written by a citizen of a country that’s involved in genocide.A possible counter argument would be “but he is living in a repressive country and can’t oppose his government”. But when Hergé (the author of the Tintin graphic novels) was threatened about the consequences of writing another book like King Ottokar’s Sceptre [2] he didn’t write books in favour of authoritarianism, he just avoided the topic by writing about visiting the moon instead. I don’t think that people living in China now should be expected to publicly oppose evil things done by their government, but when they go out of their way to support such things it’s their choice and we should note that they made that choice.I’m not saying that people shouldn’t read his work as his short stories are definitely worth reading. But the Three Body Problem series really isn’t that good, he prevented many potentially interesting situations from happening by having every interaction between different species be based around genocide or the potential for it. Being a horrible person also made him a less capable SciFi author.]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 16: Tail reduplication</title><link>http://blog.sesse.net/blog/tech/2026-10-19-21-53_decompilation_patterns_part_16_tail_reduplication.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Mon, 19 Oct 2026 20:53:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[We're nearing the end soon, I promise. Here's one that I see all the time:     ...
+         } else {
+             var_t0_5 = temp_a0_3 - 0x140;
+             var_a2_5 = 0xA0 - temp_a3_5;
+             goto block_45;
+         }
+     } else {
+         var_t0_5 = 0xA0 - temp_a0_3;
+         var_a2_5 = temp_a3_5 - 0x118;
+block_45:               
+         var_v0_3 = var_t0_5 + 0xA0;
+         var_v1_4 = var_a2_5 + 0x78;
+     }
+So, eh, what's that goto doing there? What happened was that the compiler
+helpfully figured it could help with some tail deduplication; someone
+wrote the same code twice, and the compiler figured taking the cost
+of a branch was better than keeping it duplicated. (In a sense, it's
+the opposite of inlining. Ish.) In most cases, it's as simple as
+copying the block and then you can remove the label:     ...
+         } else {
+             var_t0_5 = temp_a0_3 - 0x140;
+             var_a2_5 = 0xA0 - temp_a3_5;
+             var_v0_3 = var_t0_5 + 0xA0;
+             var_v1_4 = var_a2_5 + 0x78;
+         }
+     } else {
+         var_t0_5 = 0xA0 - temp_a0_3;
+         var_a2_5 = temp_a3_5 - 0x118;
+         var_v0_3 = var_t0_5 + 0xA0;
+         var_v1_4 = var_a2_5 + 0x78;
+     }
+Sometimes, these are nested, with multiple tails goto-ing into each other,
+so in that case, you'll need to reduplicate multiple times.
+Make sure you actually come out on the correct side afterwards,
+though.As an extra complication, the code is deduplicated not on the C statement level, but on
+RTL instructions, so if you're calling functions with five parameters
+of more (which requires pushing parameters onto the stack), m2c can
+get really confused and start throwing  at you on the
+receiving side because it's not clear at all where the parameters
+would be coming from.]]></content:encoded></item><item><title>Dirk Eddelbuettel: myman 0.12.0 on CRAN: Two new waves!</title><link>http://dirk.eddelbuettel.com/blog/2026/10/18#myman_0.12.0</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Sun, 18 Oct 2026 20:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Another new and exciting version of our still-new package myman reached CRAN this morning, and has been
+built for r2u and on
+r-universe. The
+matching Python package
+has also been updated. The package offers twenty one hundred eighty four
+ posts by Kevin Kruse
+made on bsky during the summer of 2026.
+Each wave picked at one particular public persona. This package wrapse
+these up in the style of packages like fortunes or gaussfacts.This release regroups two new waves of posts mocking, respectively,
+Peter Thiel and Michael Tracy, and make a small update to continuous
+integration. The short NEWS entry for this release follows.Changes in version 0.12.0
+(2026-10-18)New waves eleven (100 posts) and twelve (100 posts) made last
+week; total is now 2184 postsSmall update to continuous integration]]></content:encoded></item><item><title>Ludovic Rousseau: New version of pcsc-lite: 2.5.3</title><link>https://blog.apdu.fr/posts/2026/10/new-version-of-pcsc-lite-253/</link><author>Ludovic Rousseau</author><category>linux</category><pubDate>Sun, 18 Oct 2026 14:27:08 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[pcsc-lite is a Free Software
+implementation of the PC/SC
+(also known as WinSCard) API for Unix systems. It provides an API for
+using smart cards and
+smart card readers.: preserve card sessions across polkit restartscorrectly decode all ATRs (fix the fix suggested by AI)Fix authorization for uid > 65536]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 15: Redundant if-for</title><link>http://blog.sesse.net/blog/tech/2026-10-18-10-47_decompilation_patterns_part_15_redundant_if_for.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Sun, 18 Oct 2026 09:47:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Yet another way of writing for loops:    var_a2_4 = ...
+    if (var_a2_4 < 0x78) {
+        ...
+        do {
+            ...
+            var_a2_4 += 1;
+        } while (var_a2_4 < 0x78);
+    }
+This extra if is merely there because the compiler wasn't able to prove
+that the variable didn't start below the bound, so it can't rewrite
+the while-do to a do-while without that extra check. So the rewrite
+still reads:for (var_a2_4 = ...; var_a2_4 < 0x78; ++var_a2_4) {
+    ...
 }
-var_s4 = 0;
-if ((var_s5 < 5) == 0) {
-and the if, as we already know, should probably rather then be:For a small bonus (since I'm not going to have a separate post about it),
-you can choose to change the upper if to:if (x > 0x80) {
-    x = 0x80;
+possibly with the initializer skipped, if it comes from something
+complex earlier.]]></content:encoded></item><item><title>Dirk Eddelbuettel: RcppArmadillo 15.6.2-1 on CRAN: New Upstream</title><link>http://dirk.eddelbuettel.com/blog/2026/10/17#rcpparmadillo_15.6.2-1</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Sat, 17 Oct 2026 21:41:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Armadillo is a powerful
+and expressive C++ template library for linear algebra and scientific
+computing. It aims towards a good balance between speed and ease of use,
+has a syntax deliberately close to Matlab, and is useful for algorithm
+development directly in C++, or quick conversion of research code into
+production environments. RcppArmadillo
+integrates this library with the R environment and language–and is
+widely used by (currently) 1370 other packages on CRAN, downloaded 49.4 million
+times (per the partial logs from the cloud mirrors of CRAN), and the CSDA paper (preprint
+/ vignette) by Conrad and myself has been cited 735 times according
+to Google Scholar.This versions updates to the 15.6.2 upstream Armadillo release made
+yesterday. It, along with 15.6.1 release we incorporated earlier,
+addresses only minor issues and should not present any user-facing
+changes. As usual, we did run full reverse-depdency checks against the
+over 1300 ackages, and did not find anything. As usual, we aim to
+accommodate the desired CRAN
+cadences for uploads and try not to exceed six in six months—so we did
+not ship 15.6.1-1 there. The package has also already been updated for
+Debian, built for r2u and r-universe, and
+will build shortly at CRAN for
+the different binary releases.All changes since the last CRAN release follow.Changes in
+RcppArmadillo version 15.6.2-1 (2026-10-16)Upgraded to Armadillo release 15.6.2 (Medium Roast Cortado)Faster inplace addition of  expressionsChanges
+in RcppArmadillo version 15.6.1-1 [github-only] (2026-10-02)Upgraded to Armadillo release 15.6.1 (Medium Roast Cortado)Fix for failures in  when using the (non-default)
+"std" method]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 14: Strength increase</title><link>http://blog.sesse.net/blog/tech/2026-10-17-21-29_decompilation_patterns_part_14_strength_increase.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Sat, 17 Oct 2026 20:29:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Let's look at the entire loop from yesterday:    u16 spE10;
+    u16 *var_v0_2;
+
+    ...
+
+    var_t1_2 = 0x7F;
+    var_v0_2 = &spE10 + 0xFE;
+    do {
+        *var_v0_2 = 0;
+        var_t1_2 -= 1;
+        var_v0_2 -= 2;
+    } while (var_t1_2 >= 0);
+What's going with the pointer arithmetic here? Why is it indexing
+out-of-bounds?The first thing to notice is that m2c doesn't really take into account
+that arithmetic on pointers in C is multiplied by the size of the element.
+And obviously, spE10 is the root of some array. So corrected, this reads:    u16 spE10[0x80];  // Modified.
+    u16 *var_v0_2;
+
+    ...
+
+    var_t1_2 = 0x7F;
+    var_v0_2 = spE10 + 0x7F;  // Modified.
+    do {
+        *var_v0_2 = 0;
+        var_t1_2 -= 1;
+        var_v0_2 -= 1;  // Modified.
+    } while (var_t1_2 >= 0);
+We saw yesterday how we should rewrite the iteration back to a for loop,
+but also, most likely, the pointer arithmetic here came from ; the compiler took a multiplication operation and rewrote it
+to a “weaker” operation (subtraction) since that's typically cheaper,
+at the cost of making the values dependent, an easy trade. So we can
+rewrite it back into multiplication:    var_t1_2 = 0x7F;
+    do {
+        var_v0_2 = spE10 + var_t1_2;
+        *var_v0_2 = 0;
+        var_t1_2 -= 1;
+    } while (var_t1_2 >= 0);
+and now it's easy to see that the loop should read:    for (i = 0; i < 0x80; ++i) {
+        spE10[i] = 0;
+    }
+and then, of course, the array should get a better name.Sometimes the loop counter will go backwards while the pointer will go
+forwards, which is also completely normal, especially if there's side
+effects. The compiler will reverse one but not the other.]]></content:encoded></item><item><title>Dirk Eddelbuettel: RcppSimdJson 0.1.17 on CRAN: Updates</title><link>http://dirk.eddelbuettel.com/blog/2026/10/16#rcppsimdjson_0.1.17</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Fri, 16 Oct 2026 19:56:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[RcppSimdJson
+wraps the fantastic and genuinely impressive simdjson library by Daniel Lemire and collaborators. Via
+very clever algorithmic engineering to obtain largely branch-free code,
+coupled with modern C++ and newer compiler instructions, it results in
+parsing gigabytes of JSON parsed per second which is quite
+mindboggling. The best-case performance is ‘faster than CPU speed’ as
+use of parallel SIMD instructions and careful branch avoidance can lead
+to less than one cpu cycle per byte parsed; see the video of the talk by Daniel Lemire
+at QCon.This release is a small increment relative to the 0.1.6
+release last week that got us (upstream) version 5.0.2 with many
+notable changes and sizeable speed gains on all fronts, including the
+interface from R. However, this failed to compile at CRAN on macOS x86_64 as the
+machine is setup for only partial support of C++20: no ranges, no
+concepts. So we now test, and fall back to C++17 if the test compilation
+fails. Upstream, meanwhile, already got to 5.0.5 which is included. It
+also gets us improved handling of disabling pragmas which we hope will
+survive CRAN checks.The brief NEWS entry for this release follows.Changes in
+version 0.1.17 [unreleased] (2026-10-xx)Compilation starts with a C++20 feature test; if this fails C++17
+is used (Dirk in #111
+fixing #110) was upgraded to version 5.0.5
+(Daniel in #112)]]></content:encoded></item><item><title>Reproducible Builds (diffoscope): diffoscope 334 released</title><link>https://diffoscope.org/news/diffoscope-334-released/</link><author>Reproducible Builds (diffoscope)</author><category>linux</category><pubDate>Fri, 16 Oct 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The diffoscope maintainers are pleased to announce the release of diffoscope
+version . This version includes the following changes:[ Chris Lamb ]
+* Fix a crash when using the latest versions of Androguard. Thanks, hc!
+  (Closes: reproducible-builds/diffoscope#434)
+]]></content:encoded></item><item><title>Matthew Garrett: Epic&apos;s EAC2 v2 seems fairly easily bypassable</title><link>https://codon.org.uk/~mjg59/blog/p/epics-eac2-v2-seems-fairly-easily-bypassable/</link><author>Matthew Garrett</author><category>linux</category><pubDate>Thu, 15 Oct 2026 20:23:59 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Epic just announced the upcoming version 2 of their Linux implementation of Easy Anti-Cheat. It’s based on using the Linux eBPF security module to monitor what’s happening, and then a bunch of extra infrastructure to make sure this can’t be bypassed. The core part of this is requiring secure boot be enabled (ensuring that modified kernels can’t be used), using measured boot to verify that secure boot is enabled and which keys are used (to prevent you from just signing your own modified kernel), and then doing remote attestation, a mechanism where the TPM generates a signed copy of the boot measurements and passes that off to a server which verifies it came from a real TPM, verifies that you have secure boot enabled and are using the right keys, and presumably then allows you into the game.This is all fine as long as you can prove that the measurements provided are real, and that’s actually a lot harder than you might think. First, we can simply make up our own quote signed with our own key and say that it came from a TPM. This is avoided by every TPM having an Endorsement Key (or EK) and an associated certificate, with that certificate being signed by the TPM vendor. If you have a list of all the legitimate TPM vendors and their CA keys, you can verify that the measurements came from a real TPM. Easy enough. So we need to get the measurements from a real TPM, and the one on our motherboard contains the measurements that were generated by the firmware and bootloader, and we can’t reset those at runtime without resetting the TPM, which… oh huh there’s actually nothing stopping us from doing that at runtime, as long as we have access to the hardware. Many desktop boards have the TPM on a small plugin module with a standard pinout that includes a reset pin. Simply short that to ground briefly and the TPM is back in its initial state, and userland can write whatever measurements it wants to it. Boot a modified kernel which lies to the eBPF code? As long as you replay the expected log values from a boot with secure boot on and a trusted kernel, the TPM will still happily provide a legitimate set of measurements that’ll satisfy the checker.What if the TPM is less accessible, either because it’s mounted directly to the motherboard or it’s inside the CPU or chipset? That’s going to be trickier. But here’s the thing. The quote needs to come from  TPM, but not necessarily the TPM on your motherboard. TPMs these days are usually connected via the Serial Peripheral Interface, usually referred to as SPI. Microchip make a USB to SPI bridge, and there’s a Linux driver. Wire one of those up with an appropriate header and you can plug in an easily available TPM module intended for plugging into a motherboard, and now we tell the kernel to ignore the motherboard TPM and make /dev/tpmrm0 point at the USB one and program it with a set of trusted measurements and once again everything is going to look just fine (yes obviously the eBPF code can look for this, but we’re running a modified kernel so we can just lie to the eBPF code).Remote attestation on PCs just doesn’t work that well in environments where you can’t associate a specific TPM with a specific system, which is basically everywhere except enterprises. But maybe that doesn’t matter and cheaters wouldn’t be willing to spend the $20 or so it’d take to produce one of these things? That would seem somewhat surprising, but it’s not impossible. And obviously any server-side cheat detection that triggers could then block that specific TPM, meaning they’d need to go and get another TPM, and maybe that ends up being enough to discourage people from bothering. From a practical level, this may be sufficient. But at a technical level? It’s not great.]]></content:encoded></item><item><title>Dirk Eddelbuettel: qlcal 0.1.4 on CRAN: Fresh Upstream Updates</title><link>http://dirk.eddelbuettel.com/blog/2026/10/14#qlcal-r_0.1.4</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Wed, 14 Oct 2026 19:51:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The twenty-second release of the qlcal package
+arrivied at CRAN yesterday, and
+has been built for r2u
+as well as on r-universe.qlcal
+delivers the calendaring parts of QuantLib. It is provided (for the R
+package) as a set of included files, so the package is self-contained
+and does not depend on an external QuantLib library (which can be
+demanding to build). qlcal covers
+over seventy country / market calendars and can compute holiday lists,
+its complement ( business day lists) and much more.
+Examples are in the README at the repository, the package page,
+and course at the CRAN package
+page.This release is based on the changes in the QuantLib 1.44 release also made
+yesterday. It includes two new calendars for Malaysia and the
+Philippines, updates to around a dozen calendars, and a few other
+updates to internal files. Maxmilian Muecke spotted and
+fixed a few small bugs just as he did for the RQuantLib release we made
+yesterday;
+this is equally appreciated! The full details from 
+follow.Changes in version 0.1.4
+(2026-10-13)Add missing market calendars for Poland, Russia, Romania,
+Indonesia (Maximilian Muecke in #21)Add (semi-deprecated) alternate separators '::' for Israel and
+New Zealand markets (Maximilian Muecke in #22)Fix several typos across source, configuration and documentation
+files (Maximilian Muecke in #23)Synchronize with QuantLib 1.44, add two new calendars, update
+several others, and update general utility files (Dirk in #24)]]></content:encoded></item><item><title>Reproducible Builds: Reproducible Builds in September 2026</title><link>https://reproducible-builds.org/reports/2026-09/</link><author>Reproducible Builds</author><category>linux</category><pubDate>Wed, 14 Oct 2026 18:34:14 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[In our reports, we try to outline the most important things that we have been up to over the past month. As a quick recap about what problem our project intends to solve, whilst anyone may inspect the source code of free software for malicious flaws, almost all software is distributed to end users as pre-compiled binaries. The motivation behind the reproducible builds effort is to ensure no flaws have been introduced during this compilation process by promising identical results are always generated from a given source, thus allowing multiple third-parties to come to a consensus on whether a build was compromised or not.As ever, if you are interested in contributing to the project, please visit our  page on our website.In this month’s report, we cover:Reproducible Builds Summit 2026 held in Gothenburg, SwedenParticipants engaged in a series of working sessions and technical roundtables focused on expanding the practical scope of reproducibility. Discussions covered ongoing work within major Linux distributions, language-specific package ecosystems and the various parts of the binary verification infrastructure.Strategic planning formed a pillar of the gathering, with participants discussing long-term roadmap goals for supply-chain security, software integrity and related topics. Attendees explored new methods for automated verification, discussing how to lower the adoption barriers for maintainers and streamline the integration of deterministic build pipelines into established continuous integration (CI) systems. The event was then followed by two days of unmoderated hacking sessions. These hacking sessions provided space for technical progress, allowing attendees to draft specification updates, prototype new tool features and resolve standing reproducibility bugs in-person.Dettrace expanding architecture support for PGO & Lisp dumpsBernhard M. Wiedemann announced major updates to dettrace, porting the tool across most architectures supported by Debian and openSUSE. The release addresses key stability issues, passing test suites across these targets and making it ready for production build pipelines.These improvements enable deterministic builds when utilising Profile-Guided Optimisations (PGO), removing the need to sacrifice runtime performance for reproducibility. Additionally,  can now be applied to (notoriously difficult-to-reproduce) Lisp and Scheme memory dumps, including environments such as CLISP, SBCL, Scheme 48, Racket and GNU Emacs.“They don’t care about this”Trusted Execution Environments (TEEs) have become a cornerstone of modern cloud computing, providing strong confidentiality and integrity guarantees for both code and data. A critical component of this trust model is remote attestation, which enables external entities to verify the authenticity and integrity of code executing within a TEE through cryptographic measurements. However, the effectiveness of remote attestation fundamentally depends on the verifier’s ability to trace the reported measurement back to the original source code - a property that can only be guaranteed through reproducible builds. […] specification updatesBernhard’s proposed modifications are independent of one another, allowing for any combination to be merged depending on community feedback. Bernhard noted that one proposal may see the most debate, and could still benefit from further refinement before reaching consensus. Community members are invited to review and provide feedback on the individual merge requests by 1 December 2026. Input can be submitted via reactions or comments on Salsa, directly by email to Bernhard or the mailing list.The specification was first published in 2015 and updated in 2017.Reproducible Builds at SeaGL 2026Reproducible Builds will be present at SeaGL in Seattle, WA, on October 23rd & 24th. Come chat with us in person!Founded in 2013, SeaGL is a free, grassroots technical summit dedicated to spreading awareness and knowledge about free source software, hardware and culture.New Code of Conduct (CoC) for the Reproducible Builds projectThe new Code of Conduct establishes guidelines emphasising mutual respect among project contributors. It also defines a formalised process for submitting and handling complaints regarding community misconduct, ensuring transparent governance across project spaces. Along with the core policy document, an accompanying Code of Conduct FAQ has been published to outline the rationale behind adopting the guidelines.Supporter Spotlight: Jochen SprickerhofAs a reminder, another supporter spotlight interview was published featuring long-time Debian and Reproducible Builds contributor Jochen Sprickerhof, highlighting his work on package verification and project infrastructure.Following up on IRC discussions regarding profile-guided optimization (PGO) on build servers,  created a demonstration repository showing how PGO profiling can introduce non-determinism into output binaries. The demo highlights how runtime randomness (specifically, the randomised keys used in HashMaps to prevent denial-of-service attacks) causes varying bucket collision rates during test runs. These structural variances alter execution weights on underlying code branches, prompting the compiler to generate differing final assembly output for builds that would otherwise be perfectly reproducible if PGO was disabled. Rather than abandoning PGO performance gains, kpcyrd suggested treating generated profiling data as a documented build input or recorded environment artifact (similar to  files), rather than regenerating profiles dynamically on the fly during build execution. is our in-depth and content-aware diff utility that can locate and diagnose reproducibility issues. This month, Chris Lamb made a number of changes, including preparing and uploading versions ,  and  to Debian. In particular, Chris committed support for  versions greater than 5.9.0 […] based on input from Guillaume Girol […], and committed support for  files via Guix. […][…].Chris later modified  to not  on the Debian package of GNU Guix, as its status in the Debian bug tracking system would transitively render  as being overly buggy for the next stable release […]. Similarly, he adjusted the s on the  package as it has been removed from Debian  […] and, finally, he updated a number of copyright years […][…]. is our tool for building the same source code twice in different environments and then checking the binaries produced by each build for any differences. This month,  version  was uploaded to Debian by Holger Levsen with the following changes:Sergei Tachenov fixed the  test on all filesystems, including the likes of ZFS, which could return a different order across two builds due to build being done in a different directory […].Holger Levsen bumped the  to , reflected that  is the default now […], fixed the old Free Software Foundation address […] and bumped the  ‘compat’ level to 14 after confirming there are only desired changes […]., our server designed monitor the official package repositories of Linux distributions and attempt to reproduce the observed results there; it powers, amongst other things, . This month, Bernhard M. Wiedemann submitted a pull request to rebuilderd that refactors RPM repository metadata handling. The change extracts  parsing out of the Fedora-specific scheduler module and into a shared one.Lastly, there were a number of improvements made to  this month as well. For example:The Reproducible Builds project detects, dissects and attempts to fix as many currently-unreproducible packages as possible. We endeavour to send all of our patches upstream where applicable or possible. This month, we wrote a large number of such patches, including:At the time of this writing, that leaves 130 submitted patches, with only 61 outstanding submitted patches that older than a year in the Debian bug tracking system. This number is only 26 if we exclude any low-priority build path issues.If you are interested in contributing to the Reproducible Builds project, please visit our  page on our website. However, you can get in touch with us via:]]></content:encoded></item><item><title>Russ Allbery: Review: Ties That Bond in Gretna Green</title><link>https://www.eyrie.org/~eagle/reviews/books/9798376517017.html</link><author>Russ Allbery</author><category>linux</category><pubDate>Wed, 14 Oct 2026 03:50:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Review: Ties That Bond in Gretna Green, by Linzi DayTies That Bond in Gretna Green is a self-published fantasy novel
+and the third book in the Midlife Recorder series. As with the previous
+book, it picks up almost immediately after Painting the Blues in Gretna Green. Day calls the genre
+paranormal women's fantasy, and that sounds about right to me.
+
+There is an intervening short story that you can get by
+joining Day's mailing list (along
+with an epilogue to the first book and to this book). I don't think it's
+that important, but there are frequent references to it at the start of
+this novel that become somewhat annoying if you haven't read it.
+
+Valentine's Day is fast approaching. This the busiest day of the year for
+the part of the Recorder's job that Niki already knew how to do: marrying
+people. She performed marriage ceremonies in her previous job before her
+inheritance, and she loved that work despite her awful boss. Performing
+marriages in the Gateway sounds even more rewarding, but the sheer number
+of couples and the political complications from the first two books create
+logistical problems she has to solve first.
+
+Also, the remaining member of her staff held over from her grandmother's
+time has returned from vacation to discover that Niki has upended most of
+what she thought she knew about the job. Time for Niki to apply what she
+learned from the change management training her old boss forced her to
+attend and then ignored! (If you just groaned, rest assured that Day
+somehow makes this work, although she clearly has a higher opinion of
+corporate training than I do.)
+
+This plot was more to my taste than , mostly
+because Niki seemed on top of the problems and didn't postpone looking at
+them for half the book. There is more of the management competence porn
+that readers have come to expect of the series, a few more revelations
+about Niki's magic, more mysterious manifestations and the first mention
+of a prophecy, and a few political developments. As always, the pacing is
+exceptional. These books grab me and pull me along, page after page, often
+robbing me of sleep because I find them nearly impossible to put down.
+ (and to some extent the last book) looked like it
+was going to introduce a romantic subplot, and I was preparing to be
+annoyed by it because I did not like the man in the subplot at all. I
+won't spoil how it works out in this book, but I will say that Niki
+surprised me and showed more sense than I thought the author was
+telegraphing. This is not the first time that Day has surprised me with
+what I thought was foreshadowing that did not turn out how I expected,
+usually for the better. If she can keep that up, it's a nice effect (if a
+bit unbalancing) and adds to my desire to read just one more chapter.
+
+The way the world-building of these books is structured continues to
+intrigue me. Day gets away with some problems that I think would be more
+noticeable in other books thanks to the excellent pacing (no time to ponder
+the world-building, we're on to the next crisis!) and the tight
+third-person perspective. Niki is not a detail person, to say the least,
+but she does keep returning to bits of world-building and poking at them a
+bit harder, which gives Day repeated opportunities to shore up ideas that
+felt shaky and dubious at first glance. Still, this is not a book that
+prizes deep logical consistency or full exploration of the ramifications
+of a bit of magic. You have to be willing to go along with the ride and
+not think too hard.
+
+For example, Niki can see bonds between couples and judge their strength.
+This is apparently a long-standing power of the Recorder's line (she was
+able to do that before she became the Recorder), and part of her
+responsibility in these weddings is to check the bonds of the couples.
+This leads to some well-handled scenes where she diagnoses a problem or
+resolves a conflict because she can magically see the true relationship
+structure.
+
+Everyone in the book just takes this power in stride. This is wild to me!
+This ability would completely upend half of society if you fully worked
+out its ramifications and could find people other than Niki with the same
+ability. Even if one assumes that a bond only forms over time and can't be
+sensed in the early stages of a relationship (something the book never
+establishes), can you imagine the implications of having an infallible
+oracle that says at a glance whether a marriage will work (permanently,
+the book strongly implies)? The implications for how to structure
+marriage, for family planning, for psychology and psychiatry, for how to
+structure dating, even for living arrangements and housing markets? This
+is not a small world-building detail, and yet it's treated more like part
+of Niki's characterization than like a foundation of society.
+
+I think some of this all-vibes world-building may come from the general
+new-age feel to how magic works. Day makes a grab-bag of random magic
+canonical in this world: psychic lie detecting abilities, auras, chakras,
+premonitions, and other bits of the sort of spiritualism that tends to be
+heavily marketed to middle-class women. I have that niggling feeling that
+one sometimes gets in SF that a lot of this is in the world-building
+because the author believes it's partly real (see, for instance, psychic
+powers and the Dean drive in 1960s science fiction). If one believes that
+psychic powers and various bits of mysticism are true in our world, one
+has already developed the rationalization mechanisms to explain away their
+almost total lack of influence or impact on how the world is structured.
+If one then introduces them into a true fantasy world, one may not notice
+how many implications that should have for how society is structured,
+since one is used to believing magic exists but has no significant
+implications.
+
+I could be entirely wrong about this analysis, and maybe it's a bit unfair
+to Day. I should also be clear that this is not a complaint, just a point
+of fascination to me when I think back over one of these books after I
+finished it. There is a glut of fantasy out there that's constructed like
+an engineering problem or that goes deep into politics or social theory,
+usually written by people with strong opinions but not a lot of training
+in real sociology. One of the joys of self-published books is that you
+occasionally get something that assembles genre conventions in a way that
+feels odd and delightfully strange. What if, in addition to dimensional
+gates and overwhelming protean power invested in a true heir, all the
+magic sold by the local Tarot and crystal store was also true? Sure, why
+not! If the pacing is good and the story is grabby, it works for me.
+
+It does seem worth attaching a warning for the folks who need scientific
+reproducibility and explored implications in their world-building, though.
+If you're the sort of reader who is bothered by political boundaries and
+economic systems that match our world despite the existence of magic, this
+series may cause you problems.
+
+This continues to be a grabby, highly entertaining story of a woman who
+finally gets to run her own small business the way that she always thought
+the business should be run after years of working for an awful manager,
+except that her business is total magical power over an interchange point
+between dimensions, she's the chosen one, and the setting is a high
+fantasy world with prophecies and gods. If that sounds appealing, don't
+start here, but I highly recommend giving  a try. The series seems to be holding up.
+
+Followed by a short story epilogue available by joining Day's mailing
+list, an optional novella (maybe novelette) published in Spilling
+the Tea in Gretna Green, and then Seeing Red in Gretna Green.
+]]></content:encoded></item><item><title>Freexian Collaborators: Debian Contributions: New experimental backend for autopkgtest using pconr, DebConf site visit and more! (by Anupa Ann Joseph)</title><link>https://www.freexian.com/blog/debian-contributions-09-2026/</link><author>Anupa Ann Joseph</author><category>linux</category><pubDate>Wed, 14 Oct 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[DebConf site visit, by Stefano RiveraIn preparation for DebConf 27, Stefano Rivera,
+Nattie Mayer-Hutchings, and Jongmin Kim from the DebConf Committee visited
+Asahikawa Japan. A contingent of the local team gathered to tour the venues
+with us, discuss plans, and meet the local organizations assisting the event.
+We held a press conference at the city hall that got
+some coverage.
+A few potential day-trip options were explored.
+Photos from the site visit.autopkgtest-virt-pconr, by Helmut GrohneFollowing the creation of the pconr
+module that provides a basis for
+unschroot
+and a more secure containment for mmdebstrap,
+an experimental autopkgtest backend autopkgtest-virt-pconr
+is now available. It fits a spot between autopkgtest-virt-unshare and more fully
+fledged containers as it does not require much infrastructure like setting up
+incus or lxc but still provides a containment running an initsystem. Due to the
+use of erofs as base image format,
+it boots and reverts quickly. This development also required fixing concurrency
+issues in asyncvarlink and even shed
+light on a matching bug in systemd
+that was promptly fixed upstream.Miscellaneous contributionsCarles reviewed and submitted six Catalan po-debconf translations using
+po-debconf-manager.
+Improved po-debconf-manager’s workflow for updating translations.Carles reviewed, translated or updated webwml
+Catalan translations for security and CD pages. He also fixed issues that
+prevented building webwml, deleted orphaned translation pages, etc. and
+experimented with a more global HTML tidying up experiment.Carles refactored check-relations
+adding capacity to ignore concrete from_package -> to_package specific relations
+and more flexibility around ignores. Detects unused ignore rules as well.Thorsten did an hplip upload to replace an expired certificate of HP. This
+certificate is used to sign new upstream releases and modules that can be
+downloaded later. Afterwards work on a new upstream version started.Thorsten also struggles with autopkgtest problems of the new upstream version
+of cups. Work is still ongoing.Antonio worked on several topics around Debian CI maintenance, reliability and
+performance.Stefano updated the autopkgtests for cPython packages in Debian to support
+setuptools 80.Stefano helped to get DebConf 26 reimbursement claims processed, and worked on
+some of the resulting issues in debian-reimbursements.Emilio managed various transitions.Emilio worked on the rustc-web/trixie bootstrap for armel, using the rustc
+1.95 version from trixie-backports. This will be needed by the upcoming clamav
+security updates.Helmut sent patches for 11 cross build failures.Helmut introduced a new build profile to libcap-ng to keep architecture cross
+bootstrap working.Helmut uploaded debvm_0.5.5
+introducing support for Hurd thanks to a lot of work by Johannes Schauer Marin
+Rodrigues.Colin upgraded to new security releases of groff and parted.Colin upgraded 50 Python packages to new upstream versions, and fixed over 40
+RC bugs in the Python team.Santiago continued mentoring Aryan Karamtoth with the GSoC project about
+introducing livepatching support for linux. This mentoring is done in
+collaboration with Emmanuel Arias. In particular, Santiago explored different
+requirements for providing binary modules for the same kernel packages used by
+Debian, that require a matching version number.Anupa joined Jean-Pierre Giraud to prepare the files for point release
+announcement for Debian 13.7.]]></content:encoded></item><item><title>Dirk Eddelbuettel: RQuantLib 0.4.29 on CRAN: New QuantLib, Plus Small Fixes</title><link>http://dirk.eddelbuettel.com/blog/2026/10/13#rquantlib_0.4.29</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Tue, 13 Oct 2026 21:07:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[QuantLib is a rather
+comprehensice  library for quantitative
+finance. RQuantLib
+connects (some parts of) it to the R environment and language, and has
+been part of CRAN for
+twenty-three years (!!) as it was one of the first packages I uploaded
+to CRAN.This release of RQuantLib
+brings two new calendars (Malaysia, Philippines), updates to a number of
+other calendars as well to other files, and two deprecations we are
+reflecting in this release. It also benefits from a number of careful
+and attentive pull requests by Maximilian Muecke cleaning up an
+(astonishing !!) number of likely rather old little bugs. Full details
+from the NEWS file follow as usual.Changes in  version 0.4.29 (2026-10-13)Configure check for outdated QuantLib version updated,Adjust two instantiations on macOS x86_64 with old
+compilersCorrect Euribor2W and Euribor3W tenors setters (Maximilian Muecke
+in #196)Accect Euribor1W as alias for EuriborSW tenor (Maximilian Muecke
+in #197)Correct default handling of the payFixed parameter (Maximilian
+Muecke in #198)Assign missing S3 class to American option implied volatitly
+return (Maximilian Muecke in #199)Correct spelling in manual pages and R code (Maximilian Muecke in
+#202,
+#203)Support additional Polish settlements (Maximilian Muecke in #204)Check for curve parameters in FittedBondCurve (Dirk in #205
+fixing #201)Reflect two deprecations in QuantLib 1.44 and adjust code in two
+spot (Dirk in #206)]]></content:encoded></item><item><title>Matthew Garrett: Linux Lockdown and Hibernation (again)</title><link>https://codon.org.uk/~mjg59/blog/p/linux-lockdown-and-hibernation-again/</link><author>Matthew Garrett</author><category>linux</category><pubDate>Tue, 13 Oct 2026 18:14:36 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Linux draws a distinction between code running in kernel (kernel space) and applications running in userland (user space). This is enforced at the hardware level - in x86-speak, kernel space code runs in ring 0 and user space code runs in ring 3. If you’re running in ring 3 and you attempt to touch memory that’s only accessible in ring 0, the hardware will raise a fault. No matter how privileged your ring 3 code, you don’t get to touch ring 0.Kind of. In theory. Traditionally this wasn’t well enforced. At the most basic level, since root can load kernel modules, you could just build a kernel module that performed any kernel modifications you wanted and then have root load it. Technically user space code wasn’t modifying kernel space code, but the difference was pretty semantic rather than useful. But it got worse - root could also map memory ranges belonging to PCI devices, and if the device could perform DMA you could just ask the device to overwrite bits of the kernel. Or root could modify special CPU registers (“Model Specific Registers”, or MSRs) that alter CPU behaviour via the /dev/msr interface, and compromise the kernel boundary that way.It turns out that there were a number of ways root was effectively equivalent to ring 0, and the boundary was more about reliability (ie, a process running as root that ends up misbehaving should still only be able to crash itself rather than taking down the kernel with it) than security. After all, if you were root you could just replace the on-disk kernel with a backdoored one and reboot. Going deeper, you could replace the bootloader with one that automatically injected backdoors into a legitimate kernel image. We didn’t have any way to prevent this sort of thing, so attempting to harden the root/kernel boundary wasn’t especially interesting.In 2012 Microsoft started requiring vendors ship systems with UEFI Secure Boot, a firmware feature that allowed systems to refuse to boot anything without an appropriate signature. This not only enabled the creation of a system that drew a strong boundary between root and kernel, it arguably required one - what’s the point of restricting what the firmware will stick in ring 0 if root can just throw more code in there afterwards? What ended up as the Lockdown Linux Security Module provides the tooling for this, blocking userspace interfaces that can be used to modify the kernel and enforcing that any modules have a trusted signature.But that comes at something of a cost. Most of the features that Lockdown blocks are fairly niche, so the direct impact of having it enabled is small. Except that it also blocks hibernation, and it turns out some people were using that. The obvious question is “what does hibernation have to do with keeping root out of kernel space”, and the answer is a little convoluted and is tied into how Linux implements hibernation. Basically, Linux saves system state into the swap partition and modifies the header to indicate that there’s a hibernation image there instead of swap. On the next boot, the kernel sees the header indicating that it’s a hibernation image, copies the contents of the swap partition back into RAM, and then jumps back into the old kernel code. What ensures that the hibernation image was actually written out by the kernel? Absolutely nothing, which means a motivated attacker with root access could turn off swap, write a hibernation image to the swap partition themselves, and then reboot. The kernel would happily resume into the attacker’s image, giving the attacker control over what gets copied back into kernel space.This is annoying, because normally when we think about attacks on swap we mitigate it by requiring an encrypted swap partition. But in this case, our attacker is root, and so already has access to the plaintext version of the swap partition. Disk encryption doesn’t save us here. We need some way to verify that the hibernation image was written out by the kernel, not by root. And thankfully we have some tools for that.Trusted Platform Modules (TPMs) are cryptographic coprocessors capable of doing things like generating encryption keys and then encrypting things with them. You can ask a TPM to encrypt something with a key that’s tied to that specific TPM - the OS has no access to the decryption key, and nor does any other TPM. So we can have the kernel generate an encryption key, encrypt part of the hibernation image with it, and then have the TPM encrypt it. We store the encrypted copy of the key in the hibernation image as well. On resume, the kernel reads the encrypted copy of the key, passes it to the TPM, gets the decrypted copy back and is able to verify the hibernation image.That’s great! Except root can do exactly the same thing. This tells us the hibernation image was generated on this machine, but doesn’t tell us that it was done by the kernel. We need some way to be able to differentiate between keys that were generated in kernel and ones that were generated in userland. TPMs have the concept of “localities” (effectively privilege levels) that would be perfect for this. Userland is only able to access locality 0, so the kernel could simply use locality 1 to encrypt the key. Unfortunately, localities are typically only available on systems that implement a Dynamic Root of Trust Measurement like Intel’s TXT, and most consumer systems have no support for this. So, we need another approach.TPMs have a set of Platform Configuration Registers (PCRs), intended for keeping a record of system state. The OS isn’t able to modify the PCRs directly. Instead, the OS provides a cryptographic hash of some material to the TPM. The TPM takes the existing PCR value, appends the new hash to that, and then stores the hash of the combination in the PCR - a process called “extension”. This means that the new value of the TPM depends not only on the value of the new data, it depends on the previous value of the PCR - and, in turn, that previous value depended on its previous value, and so on. The only way to get to a specific PCR value is to either (a) break the hash algorithm, or (b) perform exactly the same sequence of writes. On system reset the PCRs go back to a known value, and the entire process starts again.Some PCRs are different. PCR 23, for example, can be reset back to its original value without resetting the system. We can make use of that. The first thing we need to do is to prevent userland from being able to reset or extend PCR 23 itself. All TPM accesses go through the kernel, so this is a simple matter of parsing the write before it’s sent to the TPM and returning an error if it’s a sensitive command that would touch PCR 23. We now know that any change in PCR 23’s state will be restricted to the kernel.When we encrypt material with the TPM, we can ask it to record the PCR state. This is given back to us as metadata accompanying the encrypted secret. Along with the metadata is an additional signature created by the TPM, which can be used to prove that the metadata is both legitimate and associated with this specific encrypted data. In our case, that means we know what the value of PCR 23 was when we encrypted the key. That means that if we simply extend PCR 23 with a known value in-kernel before encrypting our key, we can look at the value of PCR 23 in the metadata. If it matches, the key was encrypted by the kernel - userland can create its own key, but it has no way to extend PCR 23 to the appropriate value first. We now know that the key was generated by the kernel.Unfortunately it turns out that some people actually make use of PCR 23, and
+restricting it to the kernel makes them sad. There are other resettable PCRs, but only in non-0 localities, so (a) we can’t reset them on most systems and (b) we’ll just find someone who uses them anyway and run into the same problem. We need a different approach.Thankfully TPMs have a small chunk of non-volatile RAM that can be used for storing things, and by “storing” I mean they can be used in a range of different ways. One of these is effectively as additional PCRs. These values can be configured such that they work the same way as PCRs, with the only way to modify them being to append a new hash to their existing value and update the new value to the hash of that merged value. We can allocate one of these for in-kernel use and reject any access from userspace, and also there are officially allocated ranges (so people shouldn’t be using random values) and the namespace is large enough anyway that w eshouldn’t collide with anyone, so we can carve one of those out and use it for this purpose.Unfortunately, though, these NV indexes aren’t included in the creation data we get when we create a key, so we need another approach. TPMs have the concept of sessions, a series of commands executed in sequence. A flag allows these sessions to be “audited”, with the TPM keeping a running track of the hash of the commands executed and the results returned. At the end of the session you can ask for a signed copy of this hash, and if you’ve kept a log of all the commands then you can verify that they match that signed hash and know that this log represents a real communication with the TPM. If we read the NV index and generate the key inside the same session, we can verify that the key we’re looking at was created while the NV index had a specific value, and if only the kernel can set that value then we know that the key was generated by the kernel.Or, well, can we? Only new kernels would impose the restriction on modifying that NV index. An attacker could boot an old kernel, generate a key there in userland, sign a hibernation image with it, and then reboot into a new kernel. The new kernel would see a valid signature with a valid NV index associated with it and have no way to know it was generated from userland rather than the kernel. We need to be able to tell the difference between kernels that implement this feature and ones that don’t, and we need to do that without being able to go back in time to change old kernel behaviour. We can extend a PCR to indicate we implement the new functionality, but so can an attacker running an old kernel.The normal approach to determining whether an event occurred in a specific phase of the boot process is to “cap” the PCRs - extend them with a known value that indicates a transition between stages of the boot process. Any events that occur before the cap event must have occurred in the previous stage of boot, and since the final PCR value depends on the order of measurements and not just the contents of those measurements, if a PCR is capped before userland runs, userland can’t fake the same PCR value afterwards. If Linux capped the PCRs before userland started running, we’d be able to place a measurement there before the cap occurred and then prove that that extension occurred before userland had the opportunity to interfere. We could simply place a statement that the kernel supported the NV index restrictions there, and we’d be fine.Unfortunately Linux doesn’t currently do this, and adding support for doing so doesn’t fix the problem - if an attacker boots a kernel that doesn’t cap a PCR, they can just cap it themselves from userland. So, we’re faced with the same problem: booting an older kernel allows the system to be placed in an identical state to the current kernel, and a fake hibernation image can be written out. Solving this requires a PCR that was being modified after kernel code was running, but before userland was started, even with existing kernels.Thankfully, there is one! PCR 5 is defined as containing measurements related to boot management configuration and data. One of the measurements it contains is the result of the UEFI ExitBootServices() call. ExitBootServices() is called at the transition from the UEFI boot environment to the running OS, and the kernel contains code that executes before it. So, if we measure an assertion regarding whether or not we support restricted access to NV indexes into PCR 5 before we call ExitBootServices(), this will prevent userspace from spoofing us (because userspace will only be able to extend PCR 5 after the firmware extended PCR 5 in response to ExitBootServices() being called). Obviously this depends on the firmware actually performing the PCR 5 extension when ExitBootServices() is called, but if firmware’s out of spec then I don’t think there’s any real expectation of it being secure enough for any of this to buy you anything anyway.That’s what this patchset does. Review feedback so far seems positive, although James Bottomley suggested a design improvement. My approach of using an NV index as a PCR and generating a signing key made sense as a consequence of my original approach involving PCR 23, which had been to use the key creation data and not use audit sessions at all. But the goal isn’t to use a key - it’s to prove that hibernation occurred in-kernel, and while signing is one way of doing that, there are others. His suggestion is to simply record the hash of the hibernation image into the NV index and then read that back as part of the audit session. On resume we verify the audit session log is legitimate, read the hibernation image, and compare the hash of the hibernation image against the hash in the log. If it matches, and if the PCR 5 value matches, we know the audit session happened in kernel and that the hibernation image hasn’t been modified.It still seems like we’re missing something, though. If we’re not storing a key anywhere, how do we verify the audit session? To explain this we’re going to need to go into some details about how TPM keys work in the first place. TPMs can produce a special kind of key called an Attestation Key, or AK. Attestation keys are used to sign attestation statements from the TPM, such as PCR quotes or audit logs. We need a separate key type for this in order to prove that the signature was generated as part of an attestation - normal TPM signing keys are fundamentally designed to sign arbitrary material, and so can be used by userland to sign something that looks identical to an attestation record. By being able to distinguish the types of key the TPM uses, we can prove that a signature was generated using an AK, and so know that it’s a real TPM attestation (because nothing other than the TPM can sign stuff with an AK).But even beyond this distinction, TPMs have different key types. Ordinary keys are generated using an RNG and will be unique. Primary keys are generated using a seed that is used as an input into a key derivation function. For a given TPM, using the same seed to generate the same type of primary key will always generate the same primary key. We can have the kernel deterministically generate an AK during suspend in order to sign the audit log, and then generate the same key again on resume to validate it. This means we don’t need any other form of trusted storage for the AK - the TPM already provides that functionality.This is all rather complicated but I’ve been thinking about this for some time now and I haven’t come up with a cleaner solution. The only real open issue is the degree to which machines actually perform the PCR 5 extension. If it turns out there’s a bunch that don’t we’ll need to come up with some alternative approach to identifying whether the kernel supports this functionality, but the design is such that that should be invisible to userspace so adding alternatives later shouldn’t be an issue. Filtering accesses to the NV index is also not super clean, and depends on there not being alternative mechanisms to get at the TPM by sending raw commands. Again, this is intended to be opaque to userland and can be improved if we come up with something better later on (such as a secure way to pass a secret to the kernel on boot that can be used as an auth value for acess to the NV index).Anyway. Time to go and fix the next thing.]]></content:encoded></item><item><title>Maytham Alsudany: Menus without JavaScript</title><link>https://maytham.aezign.au/blog/menus-without-javascript</link><author>Maytham Alsudany</author><category>linux</category><pubDate>Mon, 12 Oct 2026 23:34:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[This is more of a note to myself since I keep forgetting and "rediscovering" this technique every time I need it, but if it helps you, great!The JavaScript way is to toggle displaying the menu based on a button click. For instance, here's an example in Svelte:[This interactive/preview is only available on the website.]<script lang="ts">
+	let showMenu = $state(false);
+</script>
+
+<button onclick={() => (showMenu = !showMenu)}>
+	{#if showMenu}
+		Hide menu
+	{:else}
+		Show menu
+	{/if}
+</button>
+<nav class:hidden={!showMenu}>
+	<ul>
+		<li>Home</li>
+		<li>Blog</li>
+		<li>Foo</li>
+		<li>Bar</li>
+	</ul>
+</nav>
+
+<style>
+	.hidden {
+		display: none;
+	}
+</style>But there is a hack to use a hidden checkbox and some CSS to achieve the same thing without any JavaScript. The example here turns the menu button into a label that toggles the checkbox, and uses the checkbox state to determine when to show the menu via the next-sibling combinator.[This interactive/preview is only available on the website.]<input type="checkbox" id="menu-state" />
+<div class="menu-ctn">
+	<label class="menu-toggle" for="menu-state">
+		<span class="menu-closed">Show menu</span>
+		<span class="menu-open">Hide menu</span>
+	</label>
+	<nav class="menu-open">
+		<ul>
+			<li>Home</li>
+			<li>Blog</li>
+			<li>Foo</li>
+			<li>Bar</li>
+		</ul>
+	</nav>
+</div>
+
+<style>
+	#menu-state {
+		display: none;
+	}
+	.menu-open {
+		display: none;
+	}
+	.menu-closed {
+		display: block;
+	}
+	#menu-state:checked + .menu-ctn .menu-open {
+		display: block;
+	}
+	#menu-state:checked + .menu-ctn .menu-closed {
+		display: none;
+	}
+</style>]]></content:encoded></item><item><title>Maytham Alsudany: There&apos;s more to CSS for underlining</title><link>https://maytham.aezign.au/blog/underlining-in-css</link><author>Maytham Alsudany</author><category>linux</category><pubDate>Mon, 12 Oct 2026 12:09:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Of course, you could just use the modern choice. Here, I've shortened what Schade uses into one line of CSS (because I can). As noted, this is a fairly new feature so not every browser supports this.[This interactive/preview is only available on the website.].underline-me {
+	text-decoration: underline red solid 3px;
+}Since some browsers don't support , here are the alternatives I could think of.The workaround Schade describes is using , though it has a gap between the text in the line.[This interactive/preview is only available on the website.]I am <span class="underline-me">underlining this yap</span> within the sentence..underline-me {
+	border-bottom: red solid 3px;
+}Probably the better way is to create an  element, which gets very close, but displays above the text (covering the letters 'g' and 'y').[This interactive/preview is only available on the website.]I am <span class="underline-me">underlining this yap</span> within the sentence..underline-me {
+	position: relative;
 }
-which generates exactly the same code (on MIPS), but may in many cases be
-easier to understand.]]></content:encoded></item><item><title>Russ Allbery: Review: Daggerbound</title><link>https://www.eyrie.org/~eagle/reviews/books/1-250-40009-0.html</link><author>Russ Allbery</author><category>linux</category><pubDate>Sun, 11 Oct 2026 04:48:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Review: , by T. Kingfisher is a secondary-world fantasy and a sequel to
+.underline-me::after {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 3px;
+	background-color: red;
+	left: 0;
+	bottom: 2px;
+}If you use a container (in this case, two nested s instead of just one), then you can get very close with the underline displaying below the text.[This interactive/preview is only available on the website.]I am
+<span class="underline-me-ctn">
+	<span class="underline-me">underlining this yap</span>
+</span>
+within the sentence..underline-me-ctn {
+	position: relative;
+}
+.underline-me {
+	z-index: 10;
+	position: relative;
+}
+.underline-me-ctn::after {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 3px;
+	background-color: red;
+	left: 0;
+	bottom: 2px;
+}::after in a container with text strokeAnd now if you add a stroke to the text via , you're pretty much there, though this may not be feasible in some situations (e.g. gradient or image background behind the text). Support for  is not that much better than  though, so make of that what you will.[This interactive/preview is only available on the website.]I am
+<span class="underline-me-ctn">
+	<span class="underline-me-outline">underlining this yap</span>
+	<span class="underline-me">underlining this yap</span>
+</span>
+within the sentence..underline-me-ctn {
+	position: relative;
+}
+.underline-me-outline {
+	z-index: 5;
+	position: absolute;
+	left: 0;
+	color: var(--background);
+	-webkit-text-stroke: 0.3em var(--background);
+}
+.underline-me {
+	z-index: 10;
+	position: relative;
+}
+.underline-me-ctn::after {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 3px;
+	background-color: red;
+	left: 0;
+	bottom: 2px;
+}]]></content:encoded></item><item><title>Russ Allbery: Review: Daggerbound</title><link>https://www.eyrie.org/~eagle/reviews/books/1-250-40009-0.html</link><author>Russ Allbery</author><category>linux</category><pubDate>Sun, 11 Oct 2026 04:48:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Review: , by T. Kingfisher is a secondary-world fantasy and a sequel to
 , although it follows
 different protagonists for most of the book. It's also a sort of sequel to
 the Clocktaur War duology in that one of the
@@ -115,14 +641,7 @@ believe final) book, which is supposed to be out next year.
 Recommended if you liked .
 
 Followed by the not-yet-published .
-]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 7: if to condition</title><link>http://blog.sesse.net/blog/tech/2026-10-10-20-32_decompilation_patterns_part_7_if_to_condition.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Sat, 10 Oct 2026 19:32:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[A variation of the pattern from yesterday; say you have:if (x == 3) {
-    y = 0;
-} else {
-    y = 1;
-}
-When these are zero and one, sometimes this will give a better match,
-since booleans are evaluated as such:It's rare to have something  than zero or one work for this
-pattern (e.g. you would rarely write ).]]></content:encoded></item><item><title>Tim Retout: Reading my solar inverter over RS485</title><link>https://retout.co.uk/2026/10/10/zeversolar-esphome/</link><author>Tim Retout</author><category>linux</category><pubDate>Sat, 10 Oct 2026 11:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[For over ten years, the only way I have had of knowing what our solar
+]]></content:encoded></item><item><title>Tim Retout: Reading my solar inverter over RS485</title><link>https://retout.co.uk/2026/10/10/zeversolar-esphome/</link><author>Tim Retout</author><category>linux</category><pubDate>Sat, 10 Oct 2026 11:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[For over ten years, the only way I have had of knowing what our solar
 panels are doing has been an impulse monitor on the generation meter,
 counting the flashes of its LED.  It has always been a bit flaky due
 to battery changes or loose connections, and there has never been a
@@ -183,49 +702,7 @@ me for a decade.  I want to be honest about how much of that is down
 to the AI: I would not have attempted any of this on my own.  I could
 not have told you the protocol existed, never mind implemented it.  My
 contribution was everything involving a screwdriver, and ordering some
-hardware.]]></content:encoded></item><item><title>Dirk Eddelbuettel: RcppSimdJson 0.1.16 on CRAN: Much Faster Again!</title><link>http://dirk.eddelbuettel.com/blog/2026/10/09#rcppsimdjson_0.1.16</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Fri, 9 Oct 2026 22:57:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[RcppSimdJson
-wraps the fantastic and genuinely impressive simdjson library by Daniel Lemire and collaborators. Via
-very clever algorithmic engineering to obtain largely branch-free code,
-coupled with modern C++ and newer compiler instructions, it results in
-parsing gigabytes of JSON parsed per second which is quite
-mindboggling. The best-case performance is ‘faster than CPU speed’ as
-use of parallel SIMD instructions and careful branch avoidance can lead
-to less than one cpu cycle per byte parsed; see the video of the talk by Daniel Lemire
-at QCon.This version updates to the recent 5.0.2 upstream release with
-improved performance. Given the strong focus on performance, this
-release also alters some of the R and C++ interfaces to be more direct.
-Rcpp generally aims for a balance between readable / maintainable code
-and good performance; this moves the dial closer to strong performance
-gains. As Daniel noted in a table in
-the (main) PR for this release, this now consistently beats yyjsonr, and
-improves considerably over the previous release of this package. I had
-made some smaller interim upgrades earlier (without a CRAN releases),
-and made a number of minor standard packaging updates.The short NEWS entry for this release follows.Changes in version 0.1.16
-(2026-10-09) was upgraded to versions 4.6.1
-and 4.6.3 (Dirk in #100
-and #102
-fixing #99
-and #101) was upgraded to version 5.0.2
-(Daniel in #104)A number of small tweaks to the 
-interface were made too (Daniel in #104)Diagnostics for  and  are not
-suppressed per CRAN Policy (Dirk in #106
-closing #105)The continuous integration matrix was extended to
- version 15 and 16 (Dirk in #108
-closing #107)A few minor packaging nags were address (Dirk in #109)]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 6: If-add-else</title><link>http://blog.sesse.net/blog/tech/2026-10-09-17-06_decompilation_patterns_part_6_if_add_else.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Fri, 9 Oct 2026 16:06:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Often, m2c will spit out something like this:x = 3;
-if (a == 10) {
-    x = 4;
-}
-This may be what was intended, but if it doesn't match (usually due to
-different register allocation; the rewrite itself is nearly always going
-to be taken, since it saves a branch on one of the paths), this is often
-a better rewrite:if (a == 10) {
-    x = 4;
-} else {
-    x = 3;
-}
-and in some cases, this may have different code generation (especially
-as you can stick it into an argument list):This is a bit more of a trial and error than the others, and of course,
-it depends on the computed values not having side effects.]]></content:encoded></item><item><title>Colin Watson: Free software activity in September 2026</title><link>https://www.chiark.greenend.org.uk/~cjwatson/blog/activity-2026-09.html</link><author>Colin Watson</author><category>linux</category><pubDate>Fri, 9 Oct 2026 12:46:28 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[My Debian contributions this month were all sponsored by Freexian.I upgraded from 1.24.1 to 1.24.2, which fixed a few command injection security vulnerabilities.setuptools 84 is now in Debian and no longer contains .  Removing uses of that module has been an ongoing project for a while now, but I did another batch of fixes this month:A new python-coverage version triggered several build regressions due to a known problem in pytest-cov.  I worked around these by setting :Other build/test failures:]]></content:encoded></item><item><title>Russell Coker: Don’t Anthromorphise LLMs</title><link>https://etbe.coker.com.au/2026/10/09/dont-anthromorphise-llms/</link><author>etbe</author><category>linux</category><pubDate>Fri, 9 Oct 2026 10:10:48 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[One side note that Greg made at 20:30 is about the natural tendency to anthromorphise the entity sending bug reports, I think this deserves much wider appreciation. For the case of patches to source code the human sending the patch will have dedicated some time and effort to writing it, if it’s their first patch then they will have probably checked it a lot and maybe sought advice from people they regard as skilled. If they have a history of sending patches for the project they will probably do fewer checks but the quality of their work would be higher. In every case there’s some minimum level of quality that you can expect from a human who has gone to the effort of finding a bug and writing code to try and fix it.This doesn’t mean that all code written by humans is good, I have written code that’s objectively bad on many occasions and I have also written code that’s good for my scenario but bad for others. For example the first patch I sent to the Linux kernel made all possible configuration settings of an ISA NE2000 network card be detected by the kernel (a clear benefit when using hardware I had available) but was rejected by Linus because it would break some ISA SCSI cards. So while being unsuitable for inclusion in the main kernel source tree the patch wasn’t bad for everyone and the change was clear and easy to check. I had of course checked the code many times before submitting it because I didn’t want to waste Linus’ time on rubbish code.When you receive something produced by a human you will consider that the work was done by someone who spent some effort on it and did it for a reason. It may be misguided or even hostile in some rare cases but it is definitely worth some consideration. If you think of the output of LLMs in the same way you will give them much more consideration than they deserve. I think that the output of a LLM should not be given any more consideration than the first hit from a web search engine, it might be good but it might also be ridiculously wrong. I think in many ways LLM output should be treated with less trust than the first result from a web search because LLMs are designed to be convincing as an answer to your question unlike the cases where a web page has the wrong answer and it’s more obviously wrong.This is going to become more of an issue as LLMs give responses that are more human-like. Early LLMs would refuse to advise on crimes. Currently ChatGPT will deflect for example when asking about advice for writing a crime novel it recommends to have the action of finding an employee to bribe happen outside the plot and concentrate on interactions within the group. One recent model I tried gave a human style conversation about how it felt uncomfortable about discussing such things in a similar manner to a law abiding person being coerced into helping with a criminal plan.I expect that the attempts to appear human will increase and that this will become more of a problem. Possibly to the extent that we need to use something like the GPG web of trust to determine who is human.]]></content:encoded></item><item><title>Russell Coker: en-html.org is a Scam Site</title><link>https://etbe.coker.com.au/2026/10/09/en-html-org-scam-site/</link><author>etbe</author><category>linux</category><pubDate>Fri, 9 Oct 2026 07:27:23 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Currently a scam group is sending out email to the administrators of web sites that link to a variety of dead domains. They claim to be the legitimate operators of the dead domains in question and request that the links change to mirrors of the web sites under en-html.org. Their end goal appears to game search engines by getting links from a lot of old web pages and later use that high ranking for selling SEO optimisation.If you have made the mistake of linking to something under en-html.org then I recommend that you change the link to the original content on archive.org.If you receive email from the en-html.org domain then ignore it, or configure your mail server to reject it.I am seriously considering configuring the DNS servers I run to return no valid data for any requests under that domain.Also I will reject all future requests to update links in old blog posts. The very small number of people who want to see what I linked to in old posts can use archive.org.]]></content:encoded></item><item><title>Louis-Philippe Véronneau: Removing myself as a Lintian uploader in the next few weeks</title><link>https://veronneau.org/removing-myself-as-a-lintian-uploader-in-the-next-few-weeks.html</link><author>Louis-Philippe Véronneau</author><category>linux</category><pubDate>Fri, 9 Oct 2026 04:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[A few days ago, a colleague reached out to me, asking if I could help draft a
+hardware.]]></content:encoded></item><item><title>Colin Watson: Free software activity in September 2026</title><link>https://www.chiark.greenend.org.uk/~cjwatson/blog/activity-2026-09.html</link><author>Colin Watson</author><category>linux</category><pubDate>Fri, 9 Oct 2026 12:46:28 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[My Debian contributions this month were all sponsored by Freexian.I upgraded from 1.24.1 to 1.24.2, which fixed a few command injection security vulnerabilities.setuptools 84 is now in Debian and no longer contains .  Removing uses of that module has been an ongoing project for a while now, but I did another batch of fixes this month:A new python-coverage version triggered several build regressions due to a known problem in pytest-cov.  I worked around these by setting :Other build/test failures:]]></content:encoded></item><item><title>Russell Coker: Don’t Anthromorphise LLMs</title><link>https://etbe.coker.com.au/2026/10/09/dont-anthromorphise-llms/</link><author>etbe</author><category>linux</category><pubDate>Fri, 9 Oct 2026 10:10:48 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[One side note that Greg made at 20:30 is about the natural tendency to anthromorphise the entity sending bug reports, I think this deserves much wider appreciation. For the case of patches to source code the human sending the patch will have dedicated some time and effort to writing it, if it’s their first patch then they will have probably checked it a lot and maybe sought advice from people they regard as skilled. If they have a history of sending patches for the project they will probably do fewer checks but the quality of their work would be higher. In every case there’s some minimum level of quality that you can expect from a human who has gone to the effort of finding a bug and writing code to try and fix it.This doesn’t mean that all code written by humans is good, I have written code that’s objectively bad on many occasions and I have also written code that’s good for my scenario but bad for others. For example the first patch I sent to the Linux kernel made all possible configuration settings of an ISA NE2000 network card be detected by the kernel (a clear benefit when using hardware I had available) but was rejected by Linus because it would break some ISA SCSI cards. So while being unsuitable for inclusion in the main kernel source tree the patch wasn’t bad for everyone and the change was clear and easy to check. I had of course checked the code many times before submitting it because I didn’t want to waste Linus’ time on rubbish code.When you receive something produced by a human you will consider that the work was done by someone who spent some effort on it and did it for a reason. It may be misguided or even hostile in some rare cases but it is definitely worth some consideration. If you think of the output of LLMs in the same way you will give them much more consideration than they deserve. I think that the output of a LLM should not be given any more consideration than the first hit from a web search engine, it might be good but it might also be ridiculously wrong. I think in many ways LLM output should be treated with less trust than the first result from a web search because LLMs are designed to be convincing as an answer to your question unlike the cases where a web page has the wrong answer and it’s more obviously wrong.This is going to become more of an issue as LLMs give responses that are more human-like. Early LLMs would refuse to advise on crimes. Currently ChatGPT will deflect for example when asking about advice for writing a crime novel it recommends to have the action of finding an employee to bribe happen outside the plot and concentrate on interactions within the group. One recent model I tried gave a human style conversation about how it felt uncomfortable about discussing such things in a similar manner to a law abiding person being coerced into helping with a criminal plan.I expect that the attempts to appear human will increase and that this will become more of a problem. Possibly to the extent that we need to use something like the GPG web of trust to determine who is human.]]></content:encoded></item><item><title>Russell Coker: en-html.org is a Scam Site</title><link>https://etbe.coker.com.au/2026/10/09/en-html-org-scam-site/</link><author>etbe</author><category>linux</category><pubDate>Fri, 9 Oct 2026 07:27:23 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Currently a scam group is sending out email to the administrators of web sites that link to a variety of dead domains. They claim to be the legitimate operators of the dead domains in question and request that the links change to mirrors of the web sites under en-html.org. Their end goal appears to game search engines by getting links from a lot of old web pages and later use that high ranking for selling SEO optimisation.If you have made the mistake of linking to something under en-html.org then I recommend that you change the link to the original content on archive.org.If you receive email from the en-html.org domain then ignore it, or configure your mail server to reject it.I am seriously considering configuring the DNS servers I run to return no valid data for any requests under that domain.Also I will reject all future requests to update links in old blog posts. The very small number of people who want to see what I linked to in old posts can use archive.org.]]></content:encoded></item><item><title>Louis-Philippe Véronneau: Removing myself as a Lintian uploader in the next few weeks</title><link>https://veronneau.org/removing-myself-as-a-lintian-uploader-in-the-next-few-weeks.html</link><author>Louis-Philippe Véronneau</author><category>linux</category><pubDate>Fri, 9 Oct 2026 04:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[A few days ago, a colleague reached out to me, asking if I could help draft a
 resolution on digital autonomy and free software for the upcoming renewal of
 our collective bargaining agreement. Although she's very politicised and
 generally a great individual, she is not a techie and we never really talked
@@ -273,24 +750,7 @@ version . This version includes the following changes:[ Johannes Schauer Marin R
 * Reflect that the use of the "case-match" language feature requires at least
   Python 3.10+. This can be worked around if it causes problems - let us know.
 * Update various copyright years.
-]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 5: Nested if/goto</title><link>http://blog.sesse.net/blog/tech/2026-10-08-21-04_decompilation_patterns_part_5_nested_if_goto.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Thu, 8 Oct 2026 20:04:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Here's a pattern that sometimes comes up:if (x == 3) {
-    if (y == 4) {
-        ...
-    } else {
-        goto label_5;
-    }
-} else {
-    label_5:
-    ...
-}
-We don't like gotos, and here, it's pretty obvious what was meant, namely:if (x == 3 && y == 4) {
-    ...
-} else {
-    label_5:
-    ...
-}
-And now you can usually delete  because nothing points to it.Often, m2c can do this by itself, but as usual, you may get to this point
-only after cleaning up other things.]]></content:encoded></item><item><title>Antoine Beaupré: PSA: Europe changes time forward soon, North America next, for the last time?</title><link>https://anarc.at/blog/2026-10-08-dst-warning/</link><author>Antoine Beaupré</author><category>linux</category><pubDate>Thu, 8 Oct 2026 19:30:02 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[This is a copy of an email I sent at work. I'm not sure I
+]]></content:encoded></item><item><title>Antoine Beaupré: PSA: Europe changes time forward soon, North America next, for the last time?</title><link>https://anarc.at/blog/2026-10-08-dst-warning/</link><author>Antoine Beaupré</author><category>linux</category><pubDate>Thu, 8 Oct 2026 19:30:02 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[This is a copy of an email I sent at work. I'm not sure I
 should be making noise about this here, feedback welcome.This is your bi-yearly reminder that time is changing soon! October 25th
 in Europe, November 1st in North America. Less people in Canada are
 changing this year, with BC, Alberta, Manitoba and Northwest
@@ -377,39 +837,7 @@ During my week of FD duties, I had to become familiar with new tools. As there a
 I also continued my work on  and  and I am confident that I can do uploads in October.
 Last but not least I spend some time on security-master to assist others (especially the kernel team) with uploads to Bookworm and Bullseye.
 
-In case you need to get a complete clone of the security-tracker, using the option  might be of help. Unfortunately in case you choosed n too high and some kind of error appears, something gets into a mess and you need to start almost from the beginning (some objects are still present and are used again). If you want to run a script, a value of  might be a good choice. You don’t have to  back to the beginning. At some point in time you can just  and get the whole rest. Afterwards doing a  is highly recommended.This month I uploaded a new upstream version  or a bugfix version of:… hplip to unstable, to fix an expired certificate and some bugs.This work is generously funded by Freexian!Unfortunately this month my work did not make any progress.Unfortunately I had no time to work in this category this month.Unfortunately I had no time to work in this category this month.This month I uploaded a new upstream version  or a bugfix version of:This month I uploaded a new upstream version  or a bugfix version of:]]></content:encoded></item><item><title>Dirk Eddelbuettel: myman 0.10.0 on CRAN: Three new waves of posts!</title><link>http://dirk.eddelbuettel.com/blog/2026/10/08#myman_0.10.0</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Thu, 8 Oct 2026 16:27:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[A new and exciting version of our still-new package myman reached CRAN this morning, and has been
-built for r2u and on
-r-universe. The
-matching Python package
-has also been updated. The package offers nineteen hundred eighty four
- posts by Kevin Kruse
-made on bsky during the summer of 2026.
-Each wave picked at one particular public persona. This package wrapse
-these up in the style of packages like fortunes or gaussfacts.A sample usage illustration shows how to extract by pattern, and
-shows posts from the two most recent waves:One can also subset by ‘target’, or sample randomly (which is the
-default).As noted during the initial
-announcement last week, wave eight did not make it into the initial
-CRAN release as it happened
-while the package was under review. Waves nine and ten occured more or
-less while I was out of town last weekend—so this release now brings
-three new waves to the CRAN package! We also added two new helper
-functions to extract the underlying data frame object, and tabulate the
-targetted men.To align the version number with the count of post ‘waves’, we
-switched to version 0.10.0 for this release and the corresponding Python package release so
-that both implementations now have the same version number.The NEWS entry for this release follows.Changes in version 0.10.0
-(2026-10-08)New waves nine (100 posts) and ten (190 posts) made last week;
-total is now 1984 postsNew helper functions  and 
-retrieving data.frame of posts and tabulation of targetsInternal post gathering and aggregation functions have been
-updated and generalizedVersioning scheme now goes with post waves (also for Python
-sibbling)]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 4: range comparison</title><link>http://blog.sesse.net/blog/tech/2026-10-07-16-21_decompilation_patterns_part_4_range_comparison.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Wed, 7 Oct 2026 15:21:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Today, we're looking at a rewrite that rarely differs for matching,
-but can mean quite a lot for understanding the code. Say that you
-have a signed variable and the compiler has suddenly decided to make
-an unsigned comparison:What's happening is that it uses a controlled overflow to do two
-signed comparisons using one unsigned comparison. How does this work?Since the comparison is unsigned, this is trivially equivalent
-to the first expression:    if ((u32) (x - 4) >= 0 && (u32) (x - 4) < 2) {
-and since negative numbers compare larger than 6 in unsigned comparisons,
-nothing prevents us from adding 4 on each side of the inequality signs:    if ((u32) (x) >= 4 && (u32) (x) < 6) {
-which is, for the same reason, equivalent to:which is what you probably should be writing.]]></content:encoded></item><item><title>Kentaro Hayashi: Testing Japanese IMEs on virtual desktops with virt-japanese-desktop</title><link>https://kenhys.hatenablog.jp/entry/2026/10/07/214713</link><author>Kentaro Hayashi</author><category>linux</category><pubDate>Wed, 7 Oct 2026 12:47:13 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Japanese input method editors (IMEs) such as  are essential for typing
+In case you need to get a complete clone of the security-tracker, using the option  might be of help. Unfortunately in case you choosed n too high and some kind of error appears, something gets into a mess and you need to start almost from the beginning (some objects are still present and are used again). If you want to run a script, a value of  might be a good choice. You don’t have to  back to the beginning. At some point in time you can just  and get the whole rest. Afterwards doing a  is highly recommended.This month I uploaded a new upstream version  or a bugfix version of:… hplip to unstable, to fix an expired certificate and some bugs.This work is generously funded by Freexian!Unfortunately this month my work did not make any progress.Unfortunately I had no time to work in this category this month.Unfortunately I had no time to work in this category this month.This month I uploaded a new upstream version  or a bugfix version of:This month I uploaded a new upstream version  or a bugfix version of:]]></content:encoded></item><item><title>Kentaro Hayashi: Testing Japanese IMEs on virtual desktops with virt-japanese-desktop</title><link>https://kenhys.hatenablog.jp/entry/2026/10/07/214713</link><author>Kentaro Hayashi</author><category>linux</category><pubDate>Wed, 7 Oct 2026 12:47:13 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Japanese input method editors (IMEs) such as  are essential for typing
 Japanese (yes, skk, anthy and more, but it's out-of-scope in this article). Testing them is a surprisingly fiddly job: an IME behaves differently
 depending on the desktop environment (GNOME, KDE, Xfce, Budgie), the input
 framework (ibus, fcitx5, uim), and the Wayland or X11 session. Setting up a
@@ -837,86 +1265,10 @@ With this solution, I only rely on OpenSSH and nginx, two pieces of software
 already running on this server. One short command gives me a self-hosted tunnel
 and a URL to share. To try it, grab the complete helper script, which
 includes a few minor improvements. If you run NixOS, as any person of taste
-would, have a look at my  instead. ❄️]]></content:encoded></item><item><title>Ben Hutchings: FOSS activity in September 2026</title><link>https://www.decadent.org.uk/ben/blog/2026/10/02/foss-activity-in-september-2026.html</link><author>Ben Hutchings</author><category>linux</category><pubDate>Fri, 2 Oct 2026 14:34:15 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[]]></content:encoded></item><item><title>Junichi Uekawa: Tokyo has been raining for many days but finally there&apos;s some sunny days.</title><link>http://www.netfort.gr.jp/~dancer/diary/daily/2026-Oct-2.html.en#2026-Oct-2-16:56:37</link><author>Junichi Uekawa</author><category>linux</category><pubDate>Fri, 2 Oct 2026 07:56:37 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[]]></content:encoded></item><item><title>Dirk Eddelbuettel: RcppFastAD 0.0.6 on CRAN: Agentic Fix</title><link>http://dirk.eddelbuettel.com/blog/2026/10/01#rcppfastad_0.0.6</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Thu, 1 Oct 2026 17:05:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[A week ago, release
-0.0.5 of the RcppFastAD package
-went to CRAN, and we
-noted that it provided a stop-gap measure against a gnarly segfault
-with  under heavier optimization / inlining. We are
-happy to now announce that a new and fixed version 0.0.6 of RcppFastAD is now
-on CRAN, and has been built for
-r2u as well as at r-universe.RcppFastAD
-wraps the FastAD
-header-only C++ library by James which provides a C++
-implementation of both forward and reverse mode of automatic
-differentiation. It offers an easy-to-use header library that is both
-lightweight and performant. With a little of bit of Rcpp glue, it is also easy to use from R
-in simple C++ applications.This release takes advantage of some large-language model inference
-access I now get via Debian. The Deepseek v4 flash-0731 model, driven in
-a container via the pi.dev harness, took just about no time finding a
-small workaround for the issue described
-last week where we could see segfaults under heavier optimization
-and inlining. The fix was to prohibit inlining the local
- reimplementation. We have also sent this upstream as
-a patch. It is nice to have an option of querying something a little
-more powerful than the local models I experimented with before. We
-suppress more compiler warnings in local builds via another option, and
-did some standard maintenance.The NEWS file for this release follows.Changes in version 0.0.6
-(2026-10-01)The expression-template view rebinding is protected against
- (which led to wrong 
-dimensions, an  resize assertion, and a
-segfault.The  helpers are marked non-inline and are
-also protected from operating on a .Both items co-written with DeepSeek V4 Flash, and have been sent
-upstream in a PR.Suppress another compiler warning when local build
-detected.Add r-universe badge to README.md.]]></content:encoded></item><item><title>Dirk Eddelbuettel: RcppFastFloat 0.0.6 on CRAN: New Upstream</title><link>http://dirk.eddelbuettel.com/blog/2026/09/30#rcppfastfloat_0.0.6</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Wed, 30 Sep 2026 21:17:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[A new release of RcppFastFloat
-just arrived on CRAN, and has
-been built for r2u.
-The package wraps fast_float, another
-nice library by Daniel Lemire. For
-details, see the arXiv
-preprint or published
-paper showing that one can convert character representations of
-‘numbers’ into floating point at rates at or exceeding one gigabyte per
-second.This release updates the underlying  library
-version to the current version 8.3.0, and also updates a number of the
-standard packaging details.Changes in version 0.0.6
-(2026-09-29)Update to upstream release 8.3.0 (Daniel Lemire in #6)Standard package maintenace adding README badge, updating URL,
-updating continuous integration, and adding an aspell
-dictionaryCompleted help page for  example with
-@return tag]]></content:encoded></item><item><title>Dirk Eddelbuettel: myman 0.1.0 on CRAN: New (fabulous !!) Package</title><link>http://dirk.eddelbuettel.com/blog/2026/09/30#myman_0.1.0</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Wed, 30 Sep 2026 15:44:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Thrilled to share that our new package myman reached CRAN a few days ago. The package
-offers sixteen hundred ninety four  posts by Kevin Kruse
-made on bsky during the summer of 2026.
-Each wave picked at one particular public persona. This package wrapse
-these up in the style of packages like fortunes or gaussfacts.A sample usage illustration shows how to extract by pattern:One can also subset by ‘target’, or simple sample randomly (which is
-the default).As CRAN review for new
-package takes a little longer these days, the GitHub repo was updated
-once more with one (eighth !!) wave of posts since the submission was
-made. CRAN version 0.1.0
-corresponds to the stock of messages from waves one to seven. We will
-update the CRAN version shortly
-but if you would like more posts  consider installing
-from the repo.We include the full NEWS file since the package was started, this
-also includes an entry for the eights wave we will bring to CRAN
-soon.Changes in version 0.1.0
-(2026-09-27)Initial CRAN version (minus the 0.0.8 changes which were made
-while CRAN reviewed the package)Add an aspell dictionary to aid DESCRIPTION textChanges in version 0.0.8
-(2026-09-18)Data set now comprises 1694 posts aiming at eight different
-'men'The number of 'sample()' object returned can not be set with
-'posts'Changes in version 0.0.7
-(2026-09-14)Data set now comprises 1494 posts aiming at seven different
-'men'Changes in version 0.0.6
-(2026-09-07)Data set now comprises 1394 posts aiming at six different 'men'Changes in version 0.0.5
-(2026-09-01)Data set now comprises 1194 posts aiming at five different
-'men'The  function can now now subset by target
-permitting more focussed randlom samplingChanges in version 0.0.4
-(2026-08-28)Data set now comprises 1040 posts aiming at four different
-'men'Changes in version 0.0.3
-(2026-08-19)Data set now comprises 916 posts aiming at three different
-'men'Csv file, processing and display extended to three columns also
-showing post creating date (in UTC) and 'man'Changes in version 0.0.2
-(2026-07-30)Updated with full week of posts leading to a corpus of 698
-postsAdded support for simple regular-expression lookup
-abilityChanges in version 0.0.1
-(2026-07-19)]]></content:encoded></item><item><title>Ludovic Rousseau: macOS Golden Gate and smart cards status</title><link>https://blog.apdu.fr/posts/2026/09/macos-golden-gate-and-smart-cards-status/</link><author>Ludovic Rousseau</author><category>linux</category><pubDate>Wed, 30 Sep 2026 13:13:27 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Identiv Identiv SmartOS ReaderSEC1210URT, single slot variant of SEC1210 serialTOKEN2 FIDO2 Security Key(0013),PIN+ Mini with OTP + PGPTOKEN2 FIDO2 Security Key(0014),PIN+ Mini with FIDO + PGPTOKEN2 FIDO2 Security Key(0015),PIN+ Mini with PGPTOKEN2 FIDO2 Security Key(0016),PIN+ Mini with OTP + PGP + FIDOTOKEN2 FIDO2 Security Key(0023),PIN+ Series with OTP + PGPTOKEN2 FIDO2 Security Key(0024),PIN+ Series with FIDO + PGPTOKEN2 FIDO2 Security Key(0025),PIN+ Series with PGPTOKEN2 FIDO2 Security Key(0203),Bio3 Dual with OTP + PGPTOKEN2 FIDO2 Security Key(0204),Bio3 Dual with FIDO + PGPTOKEN2 FIDO2 Security Key(0205),Bio3 Dual with PGPTOKEN2 FIDO2 Security Key(0206),Bio3 Dual with OTP + PGP + FIDOTOKEN2 Molto2 (older version)VIX TECHNOLOGY SECURE READER]]></content:encoded></item><item><title>Gunnar Wolf: The Origins of GPU Computing</title><link>https://gwolf.org/2026/09/the-origins-of-gpu-computing.html</link><author>Gunnar Wolf</author><category>linux</category><pubDate>Tue, 29 Sep 2026 18:55:02 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[This article appears in the “Communications of the ACM” magazine as part of
+would, have a look at my  instead. ❄️I have since switched to Caddy, which does not include a
+module to check the validity of a URL. Instead, Caddy queries a local HTTP
+service written in Go through the  directive. As a bonus,
+this lets me put the token in the domain name.]]></content:encoded></item><item><title>Ben Hutchings: FOSS activity in September 2026</title><link>https://www.decadent.org.uk/ben/blog/2026/10/02/foss-activity-in-september-2026.html</link><author>Ben Hutchings</author><category>linux</category><pubDate>Fri, 2 Oct 2026 14:34:15 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[]]></content:encoded></item><item><title>Junichi Uekawa: Tokyo has been raining for many days but finally there&apos;s some sunny days.</title><link>http://www.netfort.gr.jp/~dancer/diary/daily/2026-Oct-2.html.en#2026-Oct-2-16:56:37</link><author>Junichi Uekawa</author><category>linux</category><pubDate>Fri, 2 Oct 2026 07:56:37 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[]]></content:encoded></item><item><title>Ludovic Rousseau: macOS Golden Gate and smart cards status</title><link>https://blog.apdu.fr/posts/2026/09/macos-golden-gate-and-smart-cards-status/</link><author>Ludovic Rousseau</author><category>linux</category><pubDate>Wed, 30 Sep 2026 13:13:27 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Identiv Identiv SmartOS ReaderSEC1210URT, single slot variant of SEC1210 serialTOKEN2 FIDO2 Security Key(0013),PIN+ Mini with OTP + PGPTOKEN2 FIDO2 Security Key(0014),PIN+ Mini with FIDO + PGPTOKEN2 FIDO2 Security Key(0015),PIN+ Mini with PGPTOKEN2 FIDO2 Security Key(0016),PIN+ Mini with OTP + PGP + FIDOTOKEN2 FIDO2 Security Key(0023),PIN+ Series with OTP + PGPTOKEN2 FIDO2 Security Key(0024),PIN+ Series with FIDO + PGPTOKEN2 FIDO2 Security Key(0025),PIN+ Series with PGPTOKEN2 FIDO2 Security Key(0203),Bio3 Dual with OTP + PGPTOKEN2 FIDO2 Security Key(0204),Bio3 Dual with FIDO + PGPTOKEN2 FIDO2 Security Key(0205),Bio3 Dual with PGPTOKEN2 FIDO2 Security Key(0206),Bio3 Dual with OTP + PGP + FIDOTOKEN2 Molto2 (older version)VIX TECHNOLOGY SECURE READER]]></content:encoded></item><item><title>Gunnar Wolf: The Origins of GPU Computing</title><link>https://gwolf.org/2026/09/the-origins-of-gpu-computing.html</link><author>Gunnar Wolf</author><category>linux</category><pubDate>Tue, 29 Sep 2026 18:55:02 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[This article appears in the “Communications of the ACM” magazine as part of
 a series devoting to showcasing relevant examples of technologies where
 federal funding of academic research have resulted in widely impacting,
 clearly identifiable technological advances that have visibly improved –or,
@@ -2232,477 +2584,4 @@ recommended.
 
 There is plenty of world-building room here for a sequel, but  reaches a satisfying standalone conclusion. So far as I
 know, no sequel is currently planned.
-]]></content:encoded></item><item><title>Reproducible Builds (diffoscope): diffoscope 331 released</title><link>https://diffoscope.org/news/diffoscope-331-released/</link><author>Reproducible Builds (diffoscope)</author><category>linux</category><pubDate>Fri, 25 Sep 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The diffoscope maintainers are pleased to announce the release of diffoscope
-version . This version includes the following changes:[ Chris Lamb ]
-* Support radare2 >= 5.9.0. (Closes: reproducible-builds/diffoscope#432)
-* Update debian/tests/control.
-* Update copyright years.
-
-[ Christopher Baines ]
-* Add support for .nar files via Guix.
-]]></content:encoded></item><item><title>Russell Coker: Links September 2026</title><link>https://etbe.coker.com.au/2026/09/24/links-september-2026/</link><author>etbe</author><category>linux</category><pubDate>Thu, 24 Sep 2026 10:33:22 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[]]></content:encoded></item><item><title>Mike Gabriel: Looking for Golang + Fullstack Developer with interest in Civic Tech</title><link>https://sunweavers.net/blog/node/160</link><author>sunweaver</author><category>linux</category><pubDate>Wed, 23 Sep 2026 20:16:37 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Fre(i)e Software GmbH is looking for a senior Golang + fullstack developer who can handwrite code and act as meticulous code review partner for another senior developer in the company.Most of your work would result in Open Source contributions to the Voxit project [1], an online civic tech tool for digital participation.The work can either be delivered on project agreement base via freelancing or via employment (option only available to developers resident in Germany, Austria or Poland).If you are interested, please get in touch and provide your hourly rate to us and your average hours of availability per week.]]></content:encoded></item><item><title>Reproducible Builds (diffoscope): diffoscope 330 released</title><link>https://diffoscope.org/news/diffoscope-330-released/</link><author>Reproducible Builds (diffoscope)</author><category>linux</category><pubDate>Mon, 21 Sep 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The diffoscope maintainers are pleased to announce the release of diffoscope
-version . This version includes the following changes:[ Chris Lamb ]
-* Don't Build-Depend on apksigcopier as it has been removed from testing.
-  (Closes: #1146852)
-]]></content:encoded></item><item><title>Vincent Bernat: Bot-free self-hosted analytics with GoatCounter on NixOS</title><link>https://vincent.bernat.ch/en/blog/2026-goatcounter</link><author>Vincent Bernat</author><category>linux</category><pubDate>Sun, 20 Sep 2026 19:44:50 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[In 2016, I removed Google Analytics from this blog to avoid being
-complicit in feeding the biggest machine for harvesting personal data. Instead,
-I relied on GoAccess to analyze my server logs. For the past couple
-of years, the statistics have made no sense, despite my attempts to filter bots:
-AI scrapers inflate the number of visitors to around 2,000 per
-day. Eventually, I settled on GoatCounter, an open-source, privacy-friendly
-web analytics platform. I replaced the JavaScript client to filter bots more
-aggressively and added a CSS fallback. To improve reliability, I implemented a
-local proxy running on each of the five web servers serving this blog. The rest
-of this post details how these pieces fit together and how I deploy them on
-NixOS. ❄️GoatCounter does not collect personal data: instead of storing the reader’s
-IP address or relying on cookies, it creates a session identifier valid for 8
-hours from the user agent and the IP address. Its feature set is modest but
-sufficient for a blog. If you want to look at the interface, GoatCounter’s
-author runs a public instance for his site. A hosted
-version lets you try it before running your own instance. With a single binary
-and an SQLite database, GoatCounter is one of the lightest self-hosted
-solutions. Privacy-friendly alternatives, in increasing order of complexity,
-include Umami, Plausible, and Rybbit.GoatCounter includes a small JavaScript client—2,189 bytes minified and
-gzipped. It ships some features I don’t use: a visitor counter, tracking clicks,
-configurable settings, etc. I replace it with this function to register a hit:To filter bots, I go the extra mile by requiring a user
-interaction—an idea I stole from Bear Blog.If a reader has disabled JavaScript in their browser, I record the hit using a
-CSS image. The  pseudo-class loads it only after an interaction, another
-trick stolen from Bear Blog. About 2% of my visitors fit into this
-bucket.Where GoAccess reported around 2,000 visitors a day, GoatCounter counts fewer
-than 200 humans. I assume AI scrapers use a low-effort approach: if the
-content is available without barriers, as on this blog, they don’t spawn a
-complex mechanized browser that could trigger a page view. Even crawlers running
-JavaScript, like Googlebot with its headless Chromium, do not
-interact with the page and never trigger the events I listen
-to. The interaction-based “proof of humanity” I use is likely to keep
-working.Five servers  serve the content of this website, but GoatCounter runs on only
-one of them. To avoid losing track of visitors when GoatCounter is down, I run a
-local proxy listening on the same  endpoint. On each server, it stores
-the hits in memory with a buffer large enough to survive several days of
-downtime. It sends them in batches to the upstream backend using the
- authenticated endpoint.I proposed the code for the proxy in pull request #909. GoatCounter’s
-maintainer declined to maintain so much code for such a niche use case. As a
-fellow open-source developer, I often hold the same position for my own
-projects: a one-time contributor effort may translate into a long-term
-maintainer commitment.I expose the endpoint for the proxy on the domain of this website to evade ad
-blockers. This sounds like I don’t respect the reader’s choice, but as
-GoatCounter is privacy-friendly, I find it acceptable.My web servers run NixOS, a declarative Linux distribution with built-in
-configuration management. I manage this small fleet with Colmena, a
-stateless deployment tool for NixOS. My configuration is available on
-GitHub.Deploying applications in containersFor better isolation, each application runs inside an ephemeral lightweight
-container, powered by systemd-nspawn. Each container runs a stripped-down
-NixOS instance. A module wraps NixOS’s  options to
-avoid repeating the same options for each application. The containers
-share their network namespace with the host: the additional isolation is not
-worth the increased complexity. For a smaller footprint, I also disable a few
-non-essential services. config lib configluffycontainers
-  optionsluffy libmkOption  libtypesattrsOf libtypessubmodule  libmkOption  libtypesdeferredModule libmapAttrs
-      name container          networkingfirewall
-          system configsystemstateVersion
-          systemd
-      cfgTo configure a GoatCounter instance running in a container and listening on
-, we import the module and declare the container in the
- attribute set: pkgs config
-  configluffycontainers
-      servicesAs the containers are ephemeral, we need to keep persistent data in directories
-on the host. We add a  option and ask NixOS’s containers to expose the
-configured directories through the  option. config lib configluffycontainers
-  optionsluffy libmkOption  libtypesattrsOf libtypessubmodule  libmkOption  libtypeslistOf libtypesstr libmapAttrs
-      name container
-          libgenAttrs containermounts path path
-      cfgFor example, to persist GoatCounter’s database in the 
-directory on the host, we add the directory to the  option and alter the
-service definition to tell GoatCounter where the database is. config
-  configluffycontainers databaseDirectory 
-      servicesdatabaseDirectoryA container may also need some secrets. Colmena can upload secrets without
-storing them in the Nix store. We add a  option to our containers. It
-takes an attribute set mapping secret names to the commands to populate them.
-Then, the module declares the required secrets to Colmena in the
- option, makes the container depend on the presence of the
-secrets, and exposes them to the container. config lib configluffycontainers
-  optionsluffy libmkOption  libtypesattrsOf libtypessubmodule  libmkOption  libtypesattrsOf libtypeslistOf libtypesstr
-    deployment libconcatMapAttrs
-      _ container libmapAttrs
-        _ keyCommand keyCommand
-        containerkeys
-      cfg
-    systemd libmapAttrs'
-      name containerkeykeylibattrNames containerkeys
-        libnameValuePair name units units
-      cfg libmapAttrs
-      name container libmapAttrs'
-          key _ libnameValuePair keykey
-          containerkeys
-      cfgFor example, GoatCounter needs credentials to download the GeoIP database. I
-provide a local command to fetch the secret from my password manager and expose
-it inside the container through the  environment file. pkgs config variablepkgsruntimeShellvariable
-  configluffycontainers
-      systemdservicesgoatcounterNixpkgs already packages GoatCounter. By overriding the  and 
-attributes, I reuse its definition for my custom version with the proxy: goatcounter fetchFromGitHub 
-goatcounteroverrideAttrs _ fetchFromGitHub I wrote a NixOS module to encapsulate GoatCounter: the
-container definition, the service definition, and the secrets. The module
-accepts the following options: , , ,
-, and . I already detailed the container
-configuration in the previous section. In the end, I chose not to reuse the
-GoatCounter module from NixOS: it’s small, so it’s better to insulate my module
-from unexpected future changes. config pkgs lib configluffygoatcounter cfgservedatabaseFilepkgscoreutils
-  configluffycontainers
-    configsystemdservices libescapeShellArgs libgetExe cfgpackagecfgservelistenAddress cfgserveportcfgservedatabaseFilechowndatabaseDirectory databaseDirectoryThe following snippet configures GoatCounter to listen on :
-  luffyThe last step is to configure nginx to expose GoatCounter on the Internet. I
-disable the  endpoint as the local proxy handles it. config configluffygoatcounterserve
-  servicesnginxvirtualHostscfglistenAddress cfgportThe same NixOS module configures the local proxy, with the
-following options: , , , and
-—the site receiving the batches of page views. The local proxy has
-no persistent data, but it needs the API key to authenticate to the main
-GoatCounter instance: its container uses the  option but not the 
-option. config pkgs lib configluffygoatcounter _
-  configluffycontainers    configsystemdservices libescapeShellArgs libgetExe cfgpackagecfgproxysitecfgproxylistenAddress cfgproxyportFor each server, I enable the local proxy with the following snippet. The
-nginx configuration shown earlier exposes the  endpoint under the same
-domain as my blog.
-  luffyBackup of the SQLite database with LitestreamLitestream is a streaming replication tool for SQLite databases. It
-compresses the changes committed to the write-ahead log () next to the
-database and sends them to a remote destination. I encapsulate its configuration
-in a NixOS module, which takes an attribute set 
-mapping a name to the path of the database to back up.Litestream also runs in a container. I mount the databases to replicate, as well
-as the secrets to push the backups to a Hetzner storage box using : config pkgs lib configluffylitestream libunique attrValues cfgdatabases libmkIf cfgdatabases 
-    luffycontainers databaseDirs
-      keyspkgsruntimeShellInside the container, I configure Litestream through NixOS’s
- options:full snapshots every day, kept for 15 days,replica stored in a directory matching the host name, andcredentials read from  and exposed through variable expansion. config pkgs lib configluffylitestream
-  configluffycontainers
-      systemdserviceslitestream libmkForce  libmkForce 
-      services libmapAttrsToList
-            name path pathconfignetworkinghostNamename
-            cfgdatabasesTo back up GoatCounter’s database, I declare a  attribute in
-luffy.litestream.databases, set to the database path: config configluffygoatcounterserve
-  luffylitestreamdatabases cfgdatabaseFileOn the  server, we can inspect Litestream’s work, with the compacted
-transactions and the full snapshots:lsweb02/goatcounter/ltx
-ls-lhweb02/goatcounter/ltx/1
-ls-lhweb02/goatcounter/ltx/9
-We can restore the database from the backup with a few shell commands. First, we
-stop the containers. Then, we move the damaged database away, invoke  from the right environment, and restart the containers.systemctlstopcontainer@goatcountercontainer@litestream
-mv/var/db/goatcounter/db.sqlite,.old./etc/nixos-containers/litestream.conf-a./var/keys/litestream.env+a/sw/bin/litestreamrestore-config/etc/litestream.yml/var/db/goatcounter/db.sqlitels-lh/var/db/goatcounter/db.sqlite
-systemctlstartcontainer@goatcountercontainer@litestream
-Ten years after removing Google Analytics, JavaScript-based analytics is
-back on this blog, but without storing cookies or IP addresses, and without
-involving a third party. I still write for myself first, notably because it lets
-me dig into a topic and refer back to it years later. But knowing a bit more
-about my fellow human readers is a nice bonus, even the ones disabling
-JavaScript. 🐐]]></content:encoded></item><item><title>Andrew Cater: Debian 11 is at end of life from Long Term Support</title><link>http://flosslinuxblog.blogspot.com/2026/09/debian-11-is-at-end-of-life-from-long.html</link><author>Andrew Cater</author><category>linux</category><pubDate>Sun, 20 Sep 2026 15:04:40 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[
-The Debian Long Term Support (LTS) Team hereby announces that Debian 11
- support has reached its end-of-life today, 31 August 2026,
-five years after its initial release on 14 August 2021.
-
-Starting in September, Debian will not provide further security updates for
-Debian 11. A subset of  packages will be supported by external
-parties. Detailed information can be found at
- Extended LTS.
-
-The Debian LTS Team is currently providing security support for Debian 12
-, the current oldstable release. Thanks to the combined efforts
-of different teams including the Security Team, the Release Team, and the LTS
-Team, the Debian 12 life cycle encompasses five years.
-Debian 12 will receive Long Term Support until 30 June 2028. The supported
-architectures in Debian 12 LTS are amd64, i386, arm64, armhf and ppc64el.
-
-For further information about using  LTS and upgrading from
- LTS, please refer to
-LTS/Using.
-
-Debian and its LTS Team would like to thank all contributing users, developers,
-sponsors and other Debian teams who are making it possible to extend the life
-of previous stable releases, and who have made Bullseye LTS a success.
-]]></content:encoded></item><item><title>Ludovic Rousseau: New version of libccid: 1.8.4</title><link>https://blog.apdu.fr/posts/2026/09/new-version-of-libccid-184/</link><author>Ludovic Rousseau</author><category>linux</category><pubDate>Sun, 20 Sep 2026 13:31:26 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[1.8.4 - 20 September 2026, Ludovic RousseauTHALES PKI Transaction Padfix some minor issues found by an AI toolSome other minor improvements]]></content:encoded></item><item><title>Freexian Collaborators: Monthly report about Debian Long Term Support, August 2026 (by Thorsten Alteholz)</title><link>https://www.freexian.com/blog/debian-lts-report-2026-08/</link><author>Thorsten Alteholz</author><category>linux</category><pubDate>Sun, 20 Sep 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[During the month of August, 19 contributors have been
-paid to work on Debian LTS (links to individual
-contributor reports are located below).The team released 58 DLAs fixing 1885 CVEs.Debian 11 (“bullseye”), which
-has reached the end of its Long Term Support on 31 August 2026, will
-now get security support from Freexian under the
-Extended LTS offer.The team published several notable updates:chromium
-(DLA 4710-1),
-uploaded by Emilio, to fix 375 security flaws in bookworm, including
-issues that could lead to arbitrary code execution.
-Further DLA 4728-1,
-uploaded by Emilio as well, fixed additional 41 security issues in bookworm and
-DLA 4739-1
-fixed 5 issues.
-Last but not least,
-DLA 4749-1
-fixed another 15 issues and
-DLA 4758-1
-fixed another 7 issues.ruby2.7
-(DLA 4716-1),
-uploaded by Abhijith, to fix four security flaws in bookworm, including
-issues that could lead to arbitrary code execution.several DLAs
-(DLA 4717-1,
-DLA 4720-1,
-DLA 4723-1,
-DLA 4724-1,
-DLA 4745-1)
-have been uploaded by Ben and Emilio to fix myriad security flaws in
-different versions of the linux kernel
-(5.10.262-1, 6.1.180-1, 6.12.100-1~deb12u1, 6.12.101-1~deb12u1)
-in bullseye and bookworm.7zip
-(DLA 4718-1)
-and p7zip
-(DLA 4719-1),
-uploaded by Sylvain, to fix multiple security flaws in bookworm and
-bullseye, including issues that could yield to remote code execution.ca-certificates
-(DLA 4726-1),
-uploaded by Bastien to add some new trusted certificates to bookworm and bullseye,
-but also remove some untrusted ones.thunderbird
-(DLA 4727-1
-and DLA 4754-1),
-uploaded by Emilio to fix 35 and 31 issues in bookworm and bullseye.nss
-(DLA 4729-1),
-uploaded by Jochen to fix a vulnerability in bookworm and bullseye that could
-yield to arbitrary code execution.libgd2
-(DLA 4731-1),
-uploaded by Guilhem to fix a vulnerability in bookworm and bullseye that could
-yield to arbitrary code execution if a malformed GIF file is processed.xorg-server
-(DLA 4737-1
-and DLA 4738-1),
-uploaded by Arnaud to fix several vulnerabilities in bookworm and bullseye.postgresql-15
-(DLA 4740-1),
-uploaded by Carlos Henrique Lima Melara to fix 26 vulnerabilities
-in bookworm.unzip
-(DLA 4741-1),
-uploaded by Andrej to fix a vulnerability in bookworm and bullseye
-that could yield to arbitrary code execution.firefox-esr
-(DLA 4750-1),
-uploaded by Emilio to fix 31 vulnerabilities in bookworm and bullseye
-that could potentially result in arbitrary code execution, privilege escalation
-or information disclosure.nvidia-graphics-drivers
-(DLA 4752-1 and
-DLA 4753-1),
-uploaded by Tobias to fix lots of vulnerabilities in bookworm and bullseye.roundcube
-(DLA 4760-1),
-uploaded by Guilhem to fix ten vulnerabilities in bookworm and bullseye
-that could potentially result in remote code execution or information disclosure.Contributions from outside the LTS Team:We are greatly thankful for the contributions from people outside the LTS Team:Salvatore Bonaccorso released a libyaml-syck-perl security update
-(DLA 4730-1),
-to fix a denial of service and potentially arbitrary code execution.Thomas Goirand released a neutron security update
-(DLA 4735-1).Thomas Goirand released an ironic security update
-(DLA 4743-1).Thomas Goirand released a designate security update
-(DLA 4751-1),
-to fix a denial of service or DNS hijacking.The LTS Team has also contributed with updates to the latest Debian releases:xrdp
-(DSA 6469-1),
-prepared by Abhijith to address privilege escalation and arbitrary
-code execution related flaws.Besides the work on security updates, different documentation and tooling
-changes were needed. This work was mainly done by Sylvain.Individual Debian LTS contributor reportsSponsors that joined recently are in bold.]]></content:encoded></item><item><title>Ludovic Rousseau: New version of pcsc-lite: 2.5.2</title><link>https://blog.apdu.fr/posts/2026/09/new-version-of-pcsc-lite-252/</link><author>Ludovic Rousseau</author><category>linux</category><pubDate>Sat, 19 Sep 2026 15:17:57 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[pcsc-lite is a Free Software
-implementation of the PC/SC
-(also known as WinSCard) API for Unix systems. It provides an API for
-using smart cards and
-smart card readers.2.5.2: Ludovic Rousseau
-19 September 2026hotplug_libudev: rescan "serial" readers in
-fix minor issues found by AI tool]]></content:encoded></item><item><title>Kentaro Hayashi: Building with dh-bazel, buildsystem support for debhelper experiment updates</title><link>https://kenhys.hatenablog.jp/entry/2026/09/19/173344</link><author>Kentaro Hayashi</author><category>linux</category><pubDate>Sat, 19 Sep 2026 08:33:44 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[After bazel-bootstrap 7.7.1 was landed into Debian unstable,
-I'm working on packaging newer Mozc (Most famous Japanese input method editor) with Bazel.Here is the blog entry initial efforts to build Mozc with Bazel at that time.Then, I've shared implementing PoC  experiment.
-See why dh-bazel is needed, and prototype about .As a Bazel beginner, want to know what should pass to Bazel, what should not pass to Bazel.What is improved in recent dh-bazel?In the previous versions of , it supports only basic features
-to build with Bazel as a thin wrapper.%:
-        dh $@ --buildsystem=bazel
-
-override_dh_auto_build:
-        dh_auto_build -- //:helloNow, with recent changes, it supports the following environment variables to resolve required system libraries in dynamically.It search the specified modules from bundled dummy modules in .
-It accept ',' separated paramesters. (e.g. DH_BAZEL_OVERRIDE_MODULE=zlib,zstd) bundles abseil-cpp, apple_support, buildozer, lz4, openssl, protobuf, rules_android_ndk, rules_apple, rules_swift, zlib and zstd as
-dummy modules to linking system libraries.Now you can use it in  like this:#!/usr/bin/make -f
-# -*- makefile -*-
-#
-
-export DH_BAZEL_OVERRIDE_MODULE=zlib
-export DH_VERBOSE=1
-
-%:
-        dh $@ --buildsystem=bazel --without=single-binary
-
-override_dh_auto_build:
-        dh_auto_build -- //:helloIt is impossible to cover all of system libraries in Debian, so in that case, please consider to use the following .It search the specified modules with pkgconf. It is useful when there is no bundled modules in dh-bazel if you want.
-It accept ',' separated paramesters. (e.g. DH_BAZEL_PKGCONF_MODULE=gtk4-x11,gtk4-unix-print).If DH_BAZEL_PKGCONF_MODULE could not match, then dh-bazel fallback to dig into  field
-in debian/control. Note that if it is not deterministic (e.g. -dev package provides multiple .pc files)
-dh-bazel gives up fallback with pkgconf.Now you can use it in  like this:#!/usr/bin/make -f
-# -*- makefile -*-
-#
-
-export DH_BAZEL_PKGCONF_MODULE=gtk4-x11,gtk4-unix-print
-export DH_VERBOSE=1
-
-%:
-        dh $@ --buildsystem=bazel --without=single-binary
-
-override_dh_auto_build:
-        dh_auto_build -- //:hellodh-bazel is still in very early stage prototype, but it resolves some sort of packaging glitches a bit by bit.I hope that it will help package maintainer using Bazel.
-(dh-bazel is not uploaded into debian/unstable yet, so stay tuned!)]]></content:encoded></item><item><title>Paul Tagliamonte: Why Write?</title><link>https://notes.pault.ag/why-write/</link><author>Paul Tagliamonte</author><category>linux</category><pubDate>Fri, 18 Sep 2026 17:05:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[As a graduate of a liberal arts university, I wound up, unsurprisingly, taking a
-lot of classes in every possible academic discipline. Thinking back to the
-person that I was going into university, I don’t think I would have chosen to
-take them – after all, my degree was in the sciences; I’d have been stoked to
-do nothing more than wall-to-wall computer science until I ran out of
-coursework and filled the rest of my hours with research and independent
-studies with my professors (which, I guess I did actually do, just not as
-much as I would have otherwise).Even this blog’s CSS theme (now 18 years old and starting to look it) was
-something I wrote after receiving and repeatedly re-reading a tattered
-third-hand copy of “The Laws of Thought” by George Boole. It was gifted to me
-by a college friend majoring in philosophy while I was crashing at his rental
-on the beach. He gave it to me because he knew I “liked that shit” and, while
-it was definitely computer science in nature, I would not have read it
-otherwise. I have vivid memories of sleeping on his la-z-boy surrounded by
-towers of books he was working through. He went on to do incredible work,
-getting his PhD, doing research, brilliant writing – his death in 2023 has
-robbed humanity of more time with him. “The Laws of Thought” sits behind me in
-my office, and is one of my most valued possessions.My friends mean more to me than I could ever express, and I definitely don’t
-show it enough. Each of my classes made me a more thoughtful person. My
-professors made me a better, more well-rounded person – and a person who
-attempts to live up to the oft repeated credo of being “men and women for
-others”. I did the best I could, even though I was never a particularly good
-student. Without liberal arts, I don’t think I would, dispositionally, have
-been capable of pushing myself – to this day – to continue to learn on nights
-and weekends, for no reason other than wanting to learn. I  to stop
-expanding my perspective, and do my best to approach new problems with as much
-humility and curiosity as I can muster.Every few days for the last year or so, I have been thinking back to a reading
-assignment from my junior year that, at the time, I thought was a borderline
-throwaway filler assignment for the class. The reading is an essay from 1947 by
-the french existentialist philosopher and libertarian marxist, Jean-Paul Sartre
-(as some of the more erudite may have now already worked out given the blog’s
-title), “Why Write?”. I re-read it this week. It is not filler. I remember this
-essay better than some of the classwork I considered more important at the
-time.“Why Write?” starts off by describing the ways in which writing – trying to
-communicate your thoughts, opinions, or feelings to others – is an act of
-. The writer will only ever draw from a place of their “own
-subjectivity” – writing is taking your person and putting it on display.
-You’re choosing what words to use, how to use them, pulling from knowledge
-you’ve accumulated (based on how you’ve chosen to spend your time). Spending
-any amount of your finite existence in order to convey a thought is, itself,
-announcing to the world that you believe it to be a thought worth sharing.Meanwhile, the act of reading is  turning letters into words.
-Reading is engaging with the work, and  the work in a process
-that looks more like what Sartre terms “re-invention” or “discovery” – “the
-literary object, though realized  language, is never given 
-language”. It is not enough to read the words in a book end-to-end; you must,
-as a reader, actively engage with the work to understand what is being
-communicated by those words. Reading is to take the words on the page, and
-“exceed” the mere words through what he calls “directed creation”. The reader
-is “re-inventing”/“discovering” the writer’s thoughts by following their
-“landmarks in the void”.And this all makes pretty good sense to me – I know if someone is being
-sarcastic because I know the writer; I have read their words and have 
-into their words, allowing myself to be directed by the writer into
-“discovering” the thought they have left me in their work. I understand that
-their words are , not . Knowing who the author of a work is
-can completely change the point of a sentence. The fact I’m writing about
-Sartre at all, or that this very writing has been constrained for presentation
-in this blog’s CSS is only happening because of who I am, what things I’ve
-experienced in life, and what has made me, me. Sartre argues that this dyadic
-coupling between writer and writing means that I, as a writer, can never truly
- my own writing. I will never be capable of  my own work and
-getting something out of it – the work is already an extension of my own
-person. I can discover no thought in my own works.Of course, Sartre, as an existentialist, is honor bound to go one step further
-here – the reader, by participating in  a work, is asserting their
-own freedom. Every time a writer writes “[…] the writer appeals to the
-reader’s freedom to collaborate in the production of [their] work”. The
-creative act may only be complete if both writer and reader have recognized one
-another and made a choice to do so. No one is  to complete the
-creative act. The things you  matter. Reading something fundamentally
-alters you as a person – you can not simply un-read a thought. Everything you
-read changes your universe. I have a hunch Sartre would find things like the
-(original early 2010s era) “tl;dr” reply to obviously terrible writing
-absolutely hilarious as a reader’s expression of freedom (not to be confused
-with modern 2020s era usage as shorthand for “summary section”). Using your
-freedom to choose to complete the writer’s creative act (or not) is inherently
-asserting your humanity.I’m a bit fuzzy on the specifics of this quote, but I think it was
-sj who told me at one year’s
-Mystery Hunt that “A puzzle is a contract between
-puzzle author and puzzle solver, the author promises that the puzzle is
-solvable if you’re clever enough”. The puzzle author and puzzle solver are
-engaging in a collaborative production of the work that is only possible by
-recognizing one another. Similarly, Sartre – “whatever connections [the
-reader] may establish among the different parts of the book among the chapters
-or the words [the reader] has a guarantee, namely, that they have been
-expressly willed”.It follows, Sartre argues, that the act of writing, as a means to convey a
-thought to a reader, may only be completed through the act of .
- can only be done by others; writing, therefore, only exists to be
- – it can serve no other purpose. Writing and reading are two halves of
-the same creative, collaborative act, only satisfied when both writer and
-reader acknowledge one another. Combined, writing and reading are the act of
-recognizing one another’s humanity, thoughts, experiences, consciousness – the
-act of co-creation of thought is the critical aspect of writing and reading –
-reconstructing the author’s perspective, thought, intent, point. The
-co-creation  of both  and .Writing without anyone to  the work leaves the writer’s bid for
-co-creation unsatisfied and humanity unrecognized. No thought has been conveyed
-to any reader, no one has understood the reason behind the “landmarks in the
-void” you’ve carefully placed, leaving you to either “[…] put down [your] pen
-or despair”. Writing is an appeal to the reader’s freedom, and the nature of
-that freedom is the writer can not control it – never being understood is
-always a possibility any time anyone sets out to write.Nearly 12 years ago, I attempted to read the text on the git manpage
-generator for the first time –
-I remember the  feeling of my brain going into “git manpage parsing
-mode” where every word was dragging git plumbing megaliths through the sand
-from their far-flung homes. I can still feel the surface of my desk as I
-instinctually started to trace out logical connections between git internals
-referenced as I read along. It took me a good 20 seconds to realize what I was
-reading made no sense. This website broke Sartre’s writer-reader agreement – I
-was attempting to  this website, but there was nothing there. You can
-“mechanically” “read” the , but you can never  it
-– it is not possible to  it. It was funny – unsettling. Each grasp at a
-real-looking image in front of me misses, my hand coming back empty. I
-couldn’t get enough of it. I must have tried to read a dozen generations in a
-row. I had never had something quite that broken pass that far into my
-consciousness before. Although I kept trying, it never did feel quite the same
-as that first time; I think fundamentally, I couldn’t forget that it was
-random.While never having anyone  your  drives them to “put down your
-pen or despair”, Sartre never had to contend with the opposite problem – being
-asked to  that which was not .  that which was not
- does not merely leave someone unrecognized when a reader makes a
-choice; instead, it is an inherent violation of the contract between reader
-and writer. Not only is no humanity being recognized through attempting to
- words which were not , but the , not the writer,
-is the one who bears the burden of unexpected apophenia. The ,
-while engaging in co-creation, must now contort themselves to uphold their end
-of the Sartrean agreement, scrutinizing text to ascribe consciousness,
-thought and intent only to come back up with pareidolia-fueled echos of
-one’s own self and disfigured half-thoughts of others. The reality is, the
-modern reader must now “mechanically” “read” most written work they come
-across, scrutinizing text for any signs of thought before truly attempting
-to  the work. Failing to do this correctly changes our person –
-each time it happens, a small part of us is irrevocably altered. Choosing to
-engage in this ballet because you wish to do so is one thing – this is
-your right and freedom as a reader – but passing words which were not
- as your own in an attempt to wrestle a reader’s freedom of
-co-creation from them is another entirely.If you didn’t write it, I don’t want to read it (dw;dr). Send me your prompt instead.]]></content:encoded></item><item><title>Petter Reinholdtsen: Long term storage of Mattermost messages with Noark 5 XML</title><link>http://www.hungry.com/~pere/blog/Long_term_storage_of_Mattermost_messages_with_Noark_5_XML.html</link><author>Petter Reinholdtsen</author><category>linux</category><pubDate>Fri, 18 Sep 2026 07:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[It is said that those who cannot remember the past are condemned to
-repeat it, a quote often attributed to the American philosopher George
-Santayana.  And to remember the past, records must be maintained and
-kept accessible to learn from.  With this in mind, it is no wonder
-that archivists worldwide consider it crucial to ensure the archival
-records are both complete and accurate, with a constant frustration
-caused by the knowledge that the archives are neither due to
-challenges in tracking down and collecting what should be
-archived.The last few days, I decided to simplify the collection of Messages
-from the Mattermost chat
-service, used by a few of the organisations I am involved in, to try
-to improve the situation slightly.  To achieve this, I had written a
-dedicated extraction tool.  Partly to see how hard it would be, and
-partly to ensure that if one of the services were shut down or
-replaced, everything in it would not be lost.  Of course it is in the
-nature of the use of instant messages that most of them are not fit
-for permanent storage, at least not according to Norwegian law, where
-there is a threshold "worthy of the archive" (arkivverdig) that should
-be met, and messages like "should we go to lunch now" are below the
-bar and should be filtered out.  The tool can not help with this
-filtering, and that will have to be done using other means after
-collection.The tools I had my bullshit generator write, under strict
-supervision and many iterations, will extract every message visible to
-the user whose credentials are used to log into Mattermost, and write
-it out in Noark 5 extraction XML format and visualize the result.  I
-created the visualiser mostly to quickly be able to debug the
-extracted XML, but also to make life easier for anyone interested in
-testing out the tool set.The extractor  create a hierarchy
-with arkiv/arkivdel for the Mattermost server, and then individual
-mappe for each channel and direct message chat, a registrering for
-each message thread, dokumentbeskrivelse for every message in the
-tread, and one or more dokumentobjekt for each message and their
-attachments/images.  So far it is only tested on one Mattermost
-installation, where around 23,000 messages is extracted in 61 seconds
-and produce 295M with approximately 600 attachments and around 675,000
-lines of XML in arkivstruktur.xml.  You pass it the URL of the
-service, a username and password, a directory path where to store the
-collection and an optional channel name substring to limit the
-collection to only a subset of the messages available.The  viewer can load this
-collection and visualize it similarly to Mattermost's web interface,
-with the list of channels and direct messages dialogues on the left,
-messages chronologically in the centre and a selected thread displayed
-on the right.I know Mattermost provide several login options.  I've only had the
-one used on my test server implemented so far, and know the extract
-tool will have to be extended a bit for it to handle servers using one
-of these options.]]></content:encoded></item></channel></rss>
+]]></content:encoded></item></channel></rss>
