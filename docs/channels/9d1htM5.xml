@@ -1,4 +1,82 @@
-<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux</title><link>http://rssfeed.antonialoytorrens.com</link><description></description><item><title>Vasudev Kamath: Releasing debvulns with needrestart and kernel vulnerability handling</title><link>https://copyninja.in/blog/debvulns-needrestart.html</link><author>copyninja</author><category>linux</category><pubDate>Sun, 1 Nov 2026 12:33:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[After quite some time, I picked up  again to implement what I
+<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux</title><link>http://rssfeed.antonialoytorrens.com</link><description></description><item><title>Mike Gabriel: OpenAGPS - The New Kid on the Block</title><link>https://sunweavers.net/blog/node/161</link><author>sunweaver</author><category>linux</category><pubDate>Sat, 7 Nov 2026 09:23:42 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[There is a new project coming to Open Source Software land these days: OpenAGPS. It is not yet 100% functional, but we are working on it. It is not fully operational, yet, but we are on it.Let me introduce OpenAGPS to you...The domain of assisted geo location services has been left to a few big tech providers. When using GPS on mobile devices, most of us send info on our approximate device location (based on cell tower IDs seen by our devices around us) mostly to Google's SUPL service in order to facilitate a faster GNSS/GPS lock on the satellites flying above us.Without assistance, retrieving a GNSS/GPS lock on sufficient satellites includes "finding" those satellites and once found retrieving data (in bytes/sec) from them. In some regions, this leads to waiting periods of up to 45 minutes, before a mobile devices has gained a lock on sufficient satellites (3 or more).In Assistend-GNSS/GPS, "other" information (such as cell tower IDs) gets used to estimate what GNSS/GPS satellites are currently passing over one's location. With AGPS, the mobile devices retrieve information via a so-called SUPL servers, containing two details: a list of potential satellites above and their dataframes. Esp. providing those dataframes over the device's internet connection (and not via the GNSS/GPS receiver downloading it from the satellite itself) speeds up the lock-on process of the mobile tremendously (several seconds to a few minutes).However, for this mechanism to work, your device will share your approximate position with the provider of the SUPL service. If the SUPL service is hosted by one main provider (i.e. Google SUPL), there is a lot of valuable information available to them for free that they can commercialize.Currently, there is only one mitigation method available to hide one's location info from the SUPL server(s) at e.g. Google: using a SUPL proxy server implementation (available as OSS, provided by and used in e.g. GrapheneOS). A SUPL proxy still depends on the big tech service provider(s) for SUPL as it merely proxies SUPL requests from mobile devices through to the proprietary SUPL services, at e.g. Google, but the mobile device is being camouflaged behind the SUPL proxy in use.OpenAGPS, on the contrary, will be a fully independent implementation from proprietary service providers, and it will refrain from collecting and commercializing end users’ data. It will be driven by individuals of the OpenAGPS community. There will likely be one central service that the OpenAGPS project plans to host and operate (the Porygon frontend/backend, OpenAGPS's GNSS Almanach service), but except from that SUPL servers can be self-hosted by individuals, companys or other communities. The requesting mobile devices' IDs will be hidden from the Porygon server (like with existing SUPL proxy implementations), so that the only centrally operated component (the Porygon Almanach server) does not know who is requesting what geo position information (and thus cannot collect such data, neither derive info about where requesting devices are located).In addition in a large OpenAGPS community, it is imaginable (in theory) that there will also be multiple central Almanach servers available on the internet (with parallel networks of base stations attached to each GNSS Almanach server).Collecting Satellite DataThe OpenAGPS project is not simply a software that admins/users can install, it needs kind of a huge and global community to operate/host/house its base station network.The challenge with providing a community-driven AGPS service on the internet is that up-to-date (real-time!) GNSS/GPS satellite position data is not available for free. Datasets can be downloaded for free, but then their datasets are often days to weeks old, thus too outdated. GNSS/GPS satellites are not geo-stationary, they circulate around the planet. Their position is dependent on the current date-time. A globally spanning network of GNSS/GPS basestations will do the trick here. Harvest the needed satellite data in real time and made available through the Porygon Almanach server to the community.The OpenAGPS project will depend on one community member every ~40-50 km² to operate a so-called OpenAGPS base station: These base stations are stationary, need to run 24/7, and they will harvest GNSS/GPS statellite data information from the satellites above in real-time and share this data with the (central) Porygon server, continuously.Help making OpenAGPS a Success: Host a Base StationTo make OpenAGPS a success, we need volunteers who are willing to host (actually: house) an OpenAGPS base station at their home or work place (or both). Users will only be able to use their self-hosted OpenAGPS SUPL server with their mobile devices (instead of e.g. Google SUPL), if we manage to establish sufficient coverage with those base stations in the area of interest, so that the OpenAGPS Almanach will get populated with sufficient satellite position data.A huge thanks to the NLnet Foundation for funding this project's bootstrap phase. Follow-up funding has been applied for, so please keep fingers crossed!]]></content:encoded></item><item><title>Isoken Ibizugbe: Seeing Accessibility in Debian</title><link>https://isokenibizugbe.wordpress.com/2026/11/06/seeing-accessibility-in-debian/</link><author>Isoken Ibizugbe</author><category>linux</category><pubDate>Fri, 6 Nov 2026 20:25:58 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Recently, I’ve been noticing something on packaging around my house that I used to glance right past: raised Braille dots on a carton of medicine, and embossed markings on a container of body cream. I’ve always known what Braille looked like, but I never paid close attention to it. Now that I’m actively working on accessibility testing for the Debian Installer, I see it everywhere.It made me reflect on how accessibility usually enters our consciousness. In tech, we’re taught about accessibility as a best practice when designing user interfaces or web apps. But realistically, you mostly see it implemented well in massive global software, like mobile operating systems or browsers like Firefox. You rarely see accessibility features integrated into local Nigerian physical products or everyday tech. Paying attention to these details made me realize how much care goes into making sure every person is considered, and how vital that mindset really is.Manual Testing & The openQA BottleneckMy recent work with Debian has been focused on automating tests for the Debian Installer’s accessibility features, specifically validating Braille display emulation.I started out by manually testing following the official steps on the Debian Installer Accessibility Wiki. Once I understood the manual flow, the next goal was figuring out how to automate it inside openQA.Initially, the idea was to initialize from the bootloader by adding parameters to the Grub (GRUB=”brltty=auto”)and it should start the installation with the braille visual. However, this didn’t work, the parameters never initiated the brttyl and it was a huge blocker going back and forth. Getting brltty to talk to the test runner in that environment would have required sweeping changes across the main Debian openQA instance configuration.Instead of pushing for complex system-wide changes on the instance, we started looking for easier alternative approaches and noted the complicated ones, when we advance in the test.We brainstormed streaming the display output directly to a dedicated file to capture and verify the Braille virtual display output. Ultimately, nested virtualization proved to be the most easiest path forward. As part of this work, I joined the debian-accessibility mailing list to introduce what we were building and share our progress.The responses were encouraging. I got some feedback and suggestions and the thread also created a discussion on how accessible the installation process currently feels for blind or visually impaired users, and where they also find issues. It served as a great reminder that test suites aren’t just about passing CI checks, they’re about serving actual people who rely on these systems every day.]]></content:encoded></item><item><title>Steve McIntyre: Geeks hacking in Cambridge...</title><link>https://blog.einval.com/2026/11/06#Cambridge-2026-hacking</link><author>Steve McIntyre</author><category>linux</category><pubDate>Fri, 6 Nov 2026 15:32:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[We're at the Arm office in
+Cambridge for fun conversations and Debian hacking, as part of this
+year's mini-DebConf. Here's some geek pron... :-)Massive thanks to the Arm folks for making us welcome: Steve Capper
+  and  Charlie Dixon for going above and
+  beyond to set things up for us!]]></content:encoded></item><item><title>Vincent Bernat: Scriptable GeoDNS: leaving AWS for Bunny</title><link>https://vincent.bernat.ch/en/blog/2026-bunny-geodns</link><author>Vincent Bernat</author><category>linux</category><pubDate>Fri, 6 Nov 2026 13:29:34 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[I disable logging to avoid collecting personal
+information. While the bunny.net GDPR page promises they anonymize data, it
+is unclear what CloudFront keeps in its own logs when logging is disabled.The only downside of the  offering is the lack of HTTP/3. I asked
+their support: two minutes later, they answered they are working on it but have
+no  to share.I run seven small NixOS virtual machines to host this blog around the world:
+Paris, Nuremberg, Ashburn, Singapore, San Jose, São Paulo, and Sydney. Bunny's
+scriptable DNS lets me return the IP addresses of the .
+The browser falls back to the second server if the first one is down.The above script relies on the
+RoutingEngine.getClosestServer() helper, which returns the
+closest alive server to the user. Thanks to Doggo, we can
+check it works as expected, at least for :doggo--gp-fromAvincent.bernat.ch
+doggo--gp-fromAvincent.bernat.ch
+The most annoying drawback of this method is that a user from Buenos Aires gets
+both São Paulo (1000 mi, 30 ms ) and Ashburn (5200 mi, 140 ms ). Most
+resolvers randomize the order, so the user may pull the web page from Ashburn.
+We could return only the nearest server—and swap the scripted record with the
+built-in geographic routing instead. But if the server becomes unavailable, the
+browser has no alternative until the DNS cache expires. It leaves a short window
+of unavailability, even with a short .The HTTPS record solutionThe HTTPS DNS record, defined in RFC 9460, solves both the availability
+and the latency issues. Modern browsers query this record to get additional
+information to reach an HTTP server, including an alternative port and the
+application layer protocol—HTTP/2 or HTTP/3. Each record has a priority. We
+can ask browsers to contact the nearest server first and fall back to the next
+one if the first is unavailable:This looks like the ideal solution! Unfortunately, Chrome ignores any record
+whose target is not , hence the last record at priority 3.
+Moreover, unlike with a , Bunny DNS does not return the IP addresses for
+ and  in the additional section. The resolver needs to
+send a first request to get the  record, and a second to resolve
+.HTTPS records are still too new for this use case. Back to the drawing board! 📐As a compromise, the script returns the two nearest servers if they are at a
+similar distance from the user. Otherwise, it returns only the nearest one with
+a lower  of 2 minutes.We can check it with . From Chicago, we get only the Ashburn server
+with a  of 2 minutes, while from Mexico, we get both Ashburn and San Jose.doggo--gp-fromAvincent.bernat.ch
+doggo--gp-fromAvincent.bernat.ch
+doggo--reverse.161.44.145.28.219.155
+The complete code is a bit more complex. It works around
+RoutingEngine.getClosestServer() supporting only IPv4, and it handles the case
+where there are not enough alive servers to build an answer.Route 53 covered one additional use case of mine: serving  to
+solve DNS-01 ACME challenges. Unlike Route 53, Bunny DNS cannot
+restrict access to a single zone with a fine-grained access policy. As this
+usage requires neither high availability nor low latency, I replaced Route 53
+with Hickory, a memory-safe DNS server written in Rust. It supports
+automatic DNSSEC signatures and dynamic updates. Its
+configuration is simple:The provided zone file only seeds the database on first start. I delegate
+DNS-01 challenges to this zone with  records:Unfortunately, Bunny DNS cannot publish a  record in a zone. I need one
+to secure the  zone and certificate delivery. Therefore, I host
+the  zone on deSEC, a free DNS hosting service run by a
+non-profit organization based in Berlin. I derive the  record to publish in
+ from the  record of :acme.luffy.cx
+dig@nsupdate.luffy.cxDNSKEY+noall+answerdnssec-dsfromkey-aSHA-256-f-Overall, I am quite happy with the switch to . There are still a few
+rough edges, like the inability to publish  records, the lack of HTTP/3, and
+the IPv4-only RoutingEngine.getClosestServer() helper. The bill went from US$5
+per month to US$1. So far, performance is on par with AWS, but I
+only finalized the current setup, including the server in Sydney, in late
+October. I need a bit more time to gather more data, and I'll post a short update. 📈]]></content:encoded></item><item><title>Andrew Cater: Arm Cambridge - pre mini-Debconf days 20261105</title><link>http://flosslinuxblog.blogspot.com/2026/11/arm-cambridge-pre-mini-debconf-days.html</link><author>Andrew Cater</author><category>linux</category><pubDate>Fri, 6 Nov 2026 12:15:42 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[ At Arm in Cambridge for two hackathon-type days before the main mini-Debconf on Saturday and Sunday. A roomful of people, mostly very quiet this morning but with people gradually arriving and greeting each other.Just had an excellent lunch. Arm are excelling themselves, as ever. With particular thanks to Charlie Dixon who has arranged excellent facilities for us all and to Liv for the catering provision. Other old friends here have also helped as ever.This sort of thing is ideal for cross-fertilization of experience, ideas - the side conversations where you realise that three people are converging to a consensus of discussion from three different starting points. It's fun and intensely interesting and it's the sort of thing that keeps me running Debian - and trusting the colleagues behind it because I've seen them here. Face and name recognition is sometimes at least as valuable as rockstar coding and the social element and shared history keeps us pulling together.]]></content:encoded></item><item><title>Andrew Cater: Arm Cambridge - pre-mini-Debconf days 20261106</title><link>http://flosslinuxblog.blogspot.com/2026/11/arm-cambridge-pre-mini-debconf-days_01985132966.html</link><author>Andrew Cater</author><category>linux</category><pubDate>Fri, 6 Nov 2026 12:14:36 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Another interesting morning so far. Lots of interesting side conversations (and, of course, people using IRC to talk to the person next to them as is traditional).It's nice to hear somebody ask a question and be told, effectively  "Oh, you need to talk to XX - they're sitting over there" or " I need to talk to someone about X, Y and Z - and they all resolve to you".Especially noticeable in  this room, perhaps, but it does point to the fact that many things in Debian ultimately  resolve to one or two people. There are a lot of people each with multiple areas of expertise which overlap - and then a few individuals who are essential as points of reference for *everyone* else.Thanks again to Arm for hosting us, for excellent food, coffee and facilities which make this _so much easier_ as a working environment for these days.]]></content:encoded></item><item><title>Ben Hutchings: FOSS activity in October 2026</title><link>https://www.decadent.org.uk/ben/blog/2026/11/06/foss-activity-in-october-2026.html</link><author>Ben Hutchings</author><category>linux</category><pubDate>Fri, 6 Nov 2026 10:48:18 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[]]></content:encoded></item><item><title>Gunnar Wolf: Don&apos;t tell anybody... but we have apparently gone DARK!</title><link>https://gwolf.org/2026/11/don-t-tell-anybody-but-we-have-apparently-gone-dark.html</link><author>Gunnar Wolf</author><category>linux</category><pubDate>Thu, 5 Nov 2026 19:14:41 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Your friendly  Debian team received one of the 
+spam messages ever…So, do we want to py to who-knows-whom for promoting the keyring-maint
+services in a verrrrrry-dark web search site?First time I have to throw this stinky onion at you…]]></content:encoded></item><item><title>John Goerzen: Letter from a Kansan: “Would You Rather Be Right or Happy?”</title><link>https://changelog.complete.org/archives/45047-letter-from-a-kansan-would-you-rather-be-right-or-happy</link><author>John Goerzen</author><category>linux</category><pubDate>Thu, 5 Nov 2026 06:19:28 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[As a person that has lived in Kansas almost all my life, I have never seen such good political news for this state as we got this week.  It is a stunning rebuke of fascism from across the country.One of the many pieces of wisdom from mechanic Tom Magliozzi is this question: “Would you rather be right, or happy?”  He often asked it in the context of somebody that had just won an argument.This is my plea to all our progressive friends: remember that question, and keep it in mind carefully over the next 2 years.  We can either build on this momentum for an even bigger victory in 2028, or we can start to lose this unique coalition.Kansans spend our lives being misunderstood and forgotten.Many of us, myself included, visit large cities regularly.It is a more surprising event when someone from a large city drives down one of our dirt roads.  The kind of road that leaves your car covered in mud when you drive your daughter to school.  The kind of road that we drive on for 3 miles before we reach the nearest paved road.Statisticians label Topeka, the capital of Kansas and city of 126,000 people, as rural.The nearst town to me, 7 miles away, has a population of 600.  In winter, many people here still leave their keys in their running, unlocked cars while they run into the grocery store.  The person at the bank, the owner of the grocery store, the mechanic, the electricians, the builders, the people that run the local museum, all know my name and recognize me.  Not because I’m famous locally, but because this is normal here.  We are a community, a real one.Yet I’ve lost long-time friends, especially from the west coast, because, while I’m progressive, I still talk to Republicans.  They thought Republicans are so evil, they ought to be shunned and ostracized.It probably doesn’t compute to a San Franciscan what it means to live in a county that went 80% for Trump one time.  A county of about 10,000 people living in a space larger than Los Angeles, New York, and San Jose — combined.  (Those cities have a combined population of about 13 million, living on the same amount of land as 10,000 people do out here.)If I avoided talking to Republicans, it wouldn’t be them that would be isolated.  It would be me.Out here, many of us have lived with each other for generations.  We may go on living with them for generations.  If somebody’s car is stuck in the mud, the first person that comes by with a truck and a rope will probably pull them out.  Nobody asks who you voted for.  This is what you do for neighbors, because neighbors are humans, and next time it might be me that’s stuck in the mud.I can be as incensed as anyone else about what the fascists are doing.  I don’t have direct knowledge of how a lot of people vote.  But I take a deep breath sometimes and remind myself: these are my neighbors.  I’ve seen them go out of their way to be kind and generous with all walks of humanity.  (Yes, even whatever groups you’re imaginging to argue with me about.)This is part of how Adam Hamilton defeated Roger Marshal.  The anti-Trump sentiment wasn’t enough on its own.  Lifelong Republicans dissatisfied with how Trump handled things weren’t just going to vote for any Democrat.  They needed someone that was safe.  Someone that talked to them as humans.  Someone that respected them.Adam Hamilton went and shook hands with MAGA protestors at his events.  He told them “I want to be your senator, too.”I have already been seeing some progressives say things like, “Don’t cut them any slack.  Remember how many times people voted for fascism!  They need to still be ostracized.”That, folks, is the way we lose.  It is the wrong strategy everywhere.  And it is especially culturally wrong in the close-knit communities — again, actual communities where people know each other and have for years — that make up the heartland.Building relationships with people different than us is our best chance to build on this coalition.  And, isn’t that what progressive values call for?So, celebrate this victory.  Clap for all the activists that made it happen.And, before you set off to alienate your new and tentative allies, ask yourself:“Would I rather be right?  Or win again?”]]></content:encoded></item><item><title>Reproducible Builds (diffoscope): diffoscope 337 released</title><link>https://diffoscope.org/news/diffoscope-337-released/</link><author>Reproducible Builds (diffoscope)</author><category>linux</category><pubDate>Thu, 5 Nov 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The diffoscope maintainers are pleased to announce the release of diffoscope
+version . This version includes the following changes:[ Chris Lamb ]
+* Mark that the test_nupkg_compressed_files test requires the tlsh Python
+* module. (Closes: #1151752)
+]]></content:encoded></item><item><title>Juan Manuel Méndez Rey: Hello, Planet Debian</title><link>https://vejeta.com/en/blog/hello-planet-debian/</link><author>Juan Manuel Méndez Rey</author><category>linux</category><pubDate>Wed, 4 Nov 2026 19:30:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Hello, Planet Debian. My blog was added to the Planet today, so I think the polite thing is to introduce myself before you start finding my posts between yours.I am Juan Manuel Méndez Rey, from Sevilla. In Debian I am mendezr, and on OFTC I am Vejeta. I have been using Linux since 1994 and Debian since 1998. For a long time that was all: a happy user, installing, breaking things, reading the mailing lists from the outside. I started contributing in October 2025, and last month I became a Debian Maintainer.The way in was a friend. Back in 2019 Arturo Borrero Gonzalez filed RFP #943703 for Stremio, and for years he kept telling me I should pick it up. In September 2025 I finally listened and turned it into an ITP. It took longer than I like to admit, but Stremio is now in Debian, and I told that story here. A six year old RFP turned out to be a very good first package.Somewhere along the way I discovered that what I enjoy most is bringing old software back.The first one came from tille, who asked for help in #debian-tinytasks with xwpe, a Borland style programming editor for the terminal that nobody was looking after. I adopted it, and then I ended up as its upstream maintainer too. I fixed the old bugs and added LSP and DAP, so now an editor from 1993 can debug Go. It ships on several distributions, in Homebrew and on the BSDs. The canonical repo is on Codeberg, and the long version is in this post.The second one is older and took much longer. Conquer is a Unix strategy game written by Ed Barlow and Adam Bryant in 1987, and I lost many hours of my youth to it. It never had a free licence. I first asked about it on debian-legal in October 2006, and I spent the next 20 years tracking down the authors, one email at a time. Today Conquer v4 and V5 are GPL-3.0. It is not packaged in Debian yet, that is the next step, but you can already play it in the browser.CEF took me six months and brought me into the Chromium team, and these days I am mostly with the syft, trivy and grype security stack and with Scala 3 and sbt for Debian.To Arturo, for the nudge. To dilinger, tille and tsimonq2, my DM advocates, for trusting me.And if you can sponsor uploads for syft, trivy, grype or the Scala work, I would be very grateful. The details are on my wiki page.]]></content:encoded></item><item><title>Louis-Philippe Véronneau: Tenure</title><link>https://veronneau.org/tenure.html</link><author>Louis-Philippe Véronneau</author><category>linux</category><pubDate>Tue, 3 Nov 2026 18:00:16 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Last week, I received confirmation from my college's human resources department
+I was awarded tenure. If you ever worked in the academic world, you know how
+big of a deal this is.In our fast moving and ever-increasingly unstable world, it is a pretty strange
+feeling to know you have a stable, well-paying job for the rest of your career.
+I am truly privileged to have an occupation I greatly enjoy.Three cheers for another 30 years!]]></content:encoded></item><item><title>John Goerzen: Must we always use LLMs this way?</title><link>https://changelog.complete.org/archives/44973-must-we-always-use-llms-this-way</link><author>John Goerzen</author><category>linux</category><pubDate>Tue, 3 Nov 2026 01:04:04 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Just because most people hold AI a certain way, doesn’t mean that we always must, either now or in the future.As I noted in that piece, and my shades of gray post, I am well aware —  — the notion that a lot of frontier AI models have disturbing ethical concerns that we shouldn’t dismiss, including concentration of power and wealth, environmental concerns, unethical scraping and training, the financial bubble they seem to be creating, and more.  The most poisonous of AI cheerleaders are accelerating enshittification while cutting quality all over the place.  AI slop is also a real problem, which I’ll discuss in a bit.Before I dive in, I need to mention that no AI assistance was used for writing this post, and I have been using em dashes — correctly — for years before LLMs did.  Secondly, while popular discourse seems to use “AI” and “LLM” interchangeably, the AI field is much more broad and much more old than LLMs.  I will, nonetheless, adopt the common “AI” jargon here, but be more specific when necessary to differentiate.The present and future of LLMs outside of the cloud-hosted frontier modelsWhat differentiates productive use of AI from slopThe two are related, in fact.  Doctorow discussed how he never uses AI to write anything, but he sometimes uses it as an assistant to help him write.  Is that contradictory?  Not really.  He gave this example: he remembered a quote from a podcast, which he wanted to cite and attribute correctly.  But he couldn’t remember which podcast or who said it.  So he fired up Whisper, an open-weight model you can download and run locally, even on meagre hardware.  Whisper is a speech-to-text model.  Doctorow ran likely podcast episodes (from the target range and set of podcasts he listens to) through the model, and at that point it was a regular search.  He found the quote, then went back and listened to the episode at that time spot to verify its accuracy.It would have taken so much time to do this without Whisper that he simply would not have done it otherwise.  His writing was better because of AI.  Not because AI wrote any words for him, but because it helped him find the right ideas and attributions.  He didn’t even have to trust its transcription; it pointed him at the right place, and then he could transcribe with precision.I too have used Whisper in much the same way.  A little while back, I digitized many hours of old family audio recordings going back to the 1970s.  Thanks to Whisper, which I ran locally primarily during hours of being fully solar-powered, I have a searchable index to these gems.  A person I know recently asked me if I knew any way to transcribe some old family recordings he had.  I told him I could run it through Whisper.  It wouldn’t have great punctuation, but most of the words would be there.  This meant a lot to him and his family; what I did in 2 minutes would have taken him many days (I presume he is not a fast typist as well.)So we can start by naming: AI isn’t just chatbots, and AI can help even if it isn’t writing anything.Doctorow goes on to ask the question: what happens after the AI bubble bursts?  I do believe it will, as Ed Zitron has carefully documented for us for a long time now.  The environmental damage done by frontier training and inference in the last few years will, of course, be done.  But as he points out, we’ll be left with a plethora of surprisingly-capable open weight models, a community that has made significant strides running them on low-end devices (even phones), and a massive buildup of clean energy that hopefully will be finally able to offset some polluting energy once these heavy users drop off the grid.So then what?  Will the world just throw away the likes of Whisper and Gemma?  Obviously not.  Doctorow imagines, credibly, a situation in which individuals and universities tinker with locally-run models, iterating on them and improving them with the more traditional scale of resources available to individuals and universities.  In other words, this future sounds a lot like the earlier days of Open Source.As Ed Zitron has pointed out, the real costs of frontier AI have been hidden as these companies rack up fantastical losses.  When the bubble bursts, the real costs of frontier AI are likely to be high enough that CEO’s won’t be able to ignore the poor ROI.  But we’ll be left with these artifacts, these open-weight starting points, that people can use.That brings me to my central thesis: a lot of anti-AI sentiment is focused on the real downsides of the hyped uses of AI, and fails to account for the more ethical advances being made now, and likely to come in the future.Varying quality of AI useWe are all familiar with AI slop.  I’ve seen it, and have an increasingly skeptical eye when I see “new” projects announced in even places as niche as a BBS community (where I see things like new terminal emulators announced, written in shockingly-poor nodejs, and such).  I’ve seen documents that take many pages to say what amounts to nothing intelligble to a human, with perfect grammar.  I’ve seen pull requests that have a description that amounts to several pages of slop.  I’ve personally seen an AI agent do things like correctly detect passing an untrusted argument to a shell, then propose a broken quoting algorithm to fix it (rather than proper sanitization and exec() or, better yet, avoiding the call altogether.)I’ve also seen AI tools very quickly and accurately identify bugs that had passed human review, even professional security reviews, for years.  I’ve seen them bring more joy to some people’s jobs by handling the more drudgery parts of the jobs.  One of my favorite podcasts, Oxide and Friends, had an episode called Engineering Rigor in the LLM age and credibly described ways in which careful use of LLMs can  quality and safety.  Yes, I said increase.  (Oxide and Friends are not hype cheerleaders by any means; these are very serious people with solid technical chops, and I know some of them.)What accounts for this disconnect?We can point to many factors, but Doctorow asks a fundamental question: who is in charge?  Is it the person or the computer?  Does the AI service people, or do people service the AI?In some of the most ridiculously AI-first companies, it is very clearly the latter.  Mandates from CEOs to increase AI usage lead to perverse outcomes that sacrifice quality.  The AI is in charge.  I’ve never seen an AI be any good at design questions, and it’s no wonder than all these vibe-coded apps have the same generic feeling of crappiness.But when the AI is used pragmatically as a junior research assistant, that’s a different approach.  Its output is greeted skeptically, its actions distrusted, and it’s never asked to design something.  These are the cases where I’ve seen it make a meaningful difference.All this adds up to why I was opposed to the Debian proposals that would have banned LLM use.  Those votes are hard to change.  They would have left Debian in a vulnerable position of being unable to react to accurate security findings if they originated with an LLM, or left Debian unable to adopt ethical use of models.It would be akin to saying “you should never buy a PC because Windows 11 is terrible.”  I agree Windows 11 is terrible, but saying something like that is so dismissive of all those that have invested decades of their time in building something better.So, I find AI hype to be uncredible and dangerous.  I also find knee-jerk reactions to AI to be the same.  They are actually a form of capitulation: they let the AI megacorps dictate the terms of the conversation to revolve around them.Case study: Debian’s DFSG scannerFor a long time, my two biggest annoyances with Debian have been the difficulty of packaging Rust and Go packages with their long dependency trees, and how long it takes a new package to get reviewed.  About a year ago, the latter process was set on a path to reform, and it has gotten dramatically better.  It also cuts off a potential connection with someone that hasn’t yet heard of Linux.  Some people may not jump from Windows 11 (or the ChatGPTs of the world) immediately, but pretending that it’s ChatGPT or nothing does a disservice to all those that are trying to do research etchically.We should state at the outset that Debian takes compliance with the Debian Free Software Guidelines (DFSG) extremely seriously.  Every new package gets a review, and these reviews often catch things that upstream repos and other distros don’t.  One common example would be a package that has a stated copyright and license, but then includes files that bear a different copyright and license.You can imagine reviewing packages at this level of detail isn’t a fun task for people, and it’s hard to find volunteers to do it.  Perhaps the answer to this should be “Debian should stop caring so much more than everyone else”, and perhaps you’re right (and perhaps you aren’t).In any case, the DFSG team that reviews this added what amounts to an LLM-backed license linter.  Its job is to produce an initial assessment that the license statements documented in debian/copyright are correct, thorough, and in compliance with DFSG.  This report was not taken to be authoritative, but was designed to help with some initial assessments.There were some predictable reactions.  People were angry that the DFSG team had added this tool without any communication about it (justifiably so, I’d say).  Many were angry just because of LLM.  People made assumptions about what kind of model it used, what kind of quality it would produce, how definitive it would be in the project.It is worth noting here that Debian is uniquely decentralized.  There is a central policy, but maintainers are free to maintain their packages how they like.  They don’t have to use a standard location for a Git repo, or even use Git.One person said essentially, “it’s fine for others to use whatever tool they want, but I shouldn’t have to be exposed to LLM slop.”  The other perspective boiled down to, “why should they keep the reports secret?  If you want to proactively fix things, or flag false positives, why not?”As Andreas Tille wrote, “I have read the LLM reviews carefully, and in many cases their findings inspired additional commits to improve my packaging. In some cases, they even helped me catch mistakes that led me to reject an upload myself before human inspection.”Joey Hess raises an interesting risk: that LLMs will remove the incentive for Debian to actually fix its cumbersome processes, by letting an LLM paper them over.  I have seen this tendency in other contexts, both at work and at home, as well.  It’s a real risk, especially if Debian doesn’t tackle the packaging problem for Rust and Go.The Mastodon post that prompted me to write this began a chain of events that started with “Uploaders will be forced to address LLMs issues without human inspection.”  I don’t believe that will be the case; it goes too far against the Debian ethos.I encourage everyone to take a deep breath.  We are all getting used to a shifting landscape.  We will all make missteps, myself included.  The issues are complicated, the picture isn’t black and white, and there is incredible hype around the ecosystem that can make finding nuance difficult.Let’s be kind to each other, fellow humans.But, I do not care if you are kind to Claude.]]></content:encoded></item><item><title>Dirk Eddelbuettel: myman 0.13.0 on CRAN: Another wave!</title><link>http://dirk.eddelbuettel.com/blog/2026/11/02#myman_0.13.0</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Mon, 2 Nov 2026 12:32:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Another new version of our still-new-ish package myman reached CRAN this morning, and has been
+built for r2u and on
+r-universe. The
+matching Python package
+has also been updated. The package offers twenty two hundred eighty four
+ posts by Kevin Kruse
+made on bsky during the summer of 2026.
+Each wave picked at one particular public persona. This package wrapse
+these up in the style of packages like fortunes or gaussfacts.This release contains a new wave from October 31 to November 1 poking
+fun at Mike Johnson—just in time for the election.So have a chuckle, and then go out and vote! The short NEWS entry for
+this release follows.Changes in version 0.13.0
+(2026-11-02)New wave thirteen (100 posts); total is now 2284 posts]]></content:encoded></item><item><title>Vasudev Kamath: Releasing debvulns with needrestart and kernel vulnerability handling</title><link>https://copyninja.in/blog/debvulns-needrestart.html</link><author>copyninja</author><category>linux</category><pubDate>Sun, 1 Nov 2026 12:33:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[After quite some time, I picked up  again to implement what I
 mentioned in my previous post: exporting reboot
 required status and identifying services that need a restart.
 Additionally, I wanted to ensure kernel vulnerabilities are not marked as
@@ -172,7 +250,7 @@ to list search results of multiple content types. I released 0.68, 0.69, 0.70,
 the Django content types, leading to less database hits. In the 0.71 release I
 refactored the detail & edit views for generic models.I was torn about whether I should go to this years congress, but in the end I
 decided to go again. I guess it will be something about the 20th time I’m
-attending.]]></content:encoded></item><item><title>Samuel Henrique: Distributary: my artwork proposal for Debian 14 &quot;forky&quot;</title><link>https://samueloph.dev/blog/distributary-artwork-proposal-for-debian-14-forky/</link><author>Unknown</author><category>linux</category><pubDate>Sat, 31 Oct 2026 17:22:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[In hydrology, a  is a channel that forks away from a river and
+attending.]]></content:encoded></item><item><title>Samuel Henrique: Distributary: my artwork proposal for Debian 14 &quot;forky&quot;</title><link>https://samueloph.dev/blog/distributary-artwork-proposal-for-debian-14-forky/</link><author>Samuel Henrique (samueloph)</author><category>linux</category><pubDate>Sat, 31 Oct 2026 17:22:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[In hydrology, a  is a channel that forks away from a river and
 flows on to the sea, the opposite of a tributary. Debian is the river much of
 the Linux world forks from, so for a release called forky, that is my proposal
 for its artwork: one river, many forks.All generated by code. A small Python program grows the river by the
@@ -278,11 +356,28 @@ environment where  runs will get the same security updates as the
 rest of my system.Runs in a private filesystem, with no access to user's files or system
   configurationRuns in a filesystem where everything is read-only, except for the git
   working directoryEven the  directory is readonly, so that changes in the code can be
-  reliably detected via Runs without network unless explicitly requested by the userHere's a breakdown of the  options I used so far.Set up usual filesystem expectations:--ro-bind/usr/usr--symlinkusr/bin/bin--symlinkusr/lib64/lib64--symlinkusr/lib/lib--proc/proc--dev/devMake the working directory and pre-commit's environments storage available and
-writable:--bind--bind~/.cache/pre-commit--chdirForward git's configuration:--ro-bind/etc/gitconfig/etc/gitconfig--ro-bind~/.gitconfig/home//.gitconfigMake  writable (pre-commit needs to stash, for example), but use a tmpfs
-overlay so that the writes don't persist:--overlay-src--tmp-overlayRemove access to everything except the above. Prevent keystroke injection at
-the terminal. Propagate .--unshare-all--new-session--die-with-parent
---share-net--ro-bind/etc/resolv.conf/etc/resolv.conf--ro-bind/etc/ssl/certs/ca-certificates.crt/etc/ssl/certs/ca-certificates.crt
+  reliably detected via Runs without network unless explicitly requested by the userHere's a breakdown of the  options I used so far.Set up usual filesystem expectations:    --ro-bind /usr /usr \
+    --symlink usr/bin /bin \
+    --symlink usr/lib64 /lib64 \
+    --symlink usr/lib /lib \
+    --proc /proc \
+    --dev /dev \
+Make the working directory and pre-commit's environments storage available and
+writable:    --bind ${CURDIR} "$GUEST_DIR" \
+    --bind ~/.cache/pre-commit "/home/${USER}/.cache/pre-commit" \
+    --chdir "$GUEST_DIR" \
+Forward git's configuration:    --ro-bind /etc/gitconfig /etc/gitconfig \
+    --ro-bind ~/.gitconfig /home/${USER}/.gitconfig \
+Make  writable (pre-commit needs to stash, for example), but use a tmpfs
+overlay so that the writes don't persist:    --overlay-src "$CURDIR/.git" \
+    --tmp-overlay "$GUEST_DIR/.git" \
+Remove access to everything except the above. Prevent keystroke injection at
+the terminal. Propagate .    --unshare-all \
+    --new-session \
+    --die-with-parent
+    --share-net \
+    --ro-bind /etc/resolv.conf /etc/resolv.conf \
+    --ro-bind /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 To run it, you can set up the wrapper script to run with a higher priority in
 , but you need to edit  to remove the first
 branch of the  that, frustratingly, tries to run it as .I'm looking forward to a time where it becomes stadard practice to manage user
@@ -838,28 +933,7 @@ introducing livepatching support for linux. This mentoring is done in
 collaboration with Emmanuel Arias. In particular, Santiago explored different
 requirements for providing binary modules for the same kernel packages used by
 Debian, that require a matching version number.Anupa joined Jean-Pierre Giraud to prepare the files for point release
-announcement for Debian 13.7.]]></content:encoded></item><item><title>Dirk Eddelbuettel: RQuantLib 0.4.29 on CRAN: New QuantLib, Plus Small Fixes</title><link>http://dirk.eddelbuettel.com/blog/2026/10/13#rquantlib_0.4.29</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Tue, 13 Oct 2026 21:07:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[QuantLib is a rather
-comprehensice  library for quantitative
-finance. RQuantLib
-connects (some parts of) it to the R environment and language, and has
-been part of CRAN for
-twenty-three years (!!) as it was one of the first packages I uploaded
-to CRAN.This release of RQuantLib
-brings two new calendars (Malaysia, Philippines), updates to a number of
-other calendars as well to other files, and two deprecations we are
-reflecting in this release. It also benefits from a number of careful
-and attentive pull requests by Maximilian Muecke cleaning up an
-(astonishing !!) number of likely rather old little bugs. Full details
-from the NEWS file follow as usual.Changes in  version 0.4.29 (2026-10-13)Configure check for outdated QuantLib version updated,Adjust two instantiations on macOS x86_64 with old
-compilersCorrect Euribor2W and Euribor3W tenors setters (Maximilian Muecke
-in #196)Accect Euribor1W as alias for EuriborSW tenor (Maximilian Muecke
-in #197)Correct default handling of the payFixed parameter (Maximilian
-Muecke in #198)Assign missing S3 class to American option implied volatitly
-return (Maximilian Muecke in #199)Correct spelling in manual pages and R code (Maximilian Muecke in
-#202,
-#203)Support additional Polish settlements (Maximilian Muecke in #204)Check for curve parameters in FittedBondCurve (Dirk in #205
-fixing #201)Reflect two deprecations in QuantLib 1.44 and adjust code in two
-spot (Dirk in #206)]]></content:encoded></item><item><title>Matthew Garrett: Linux Lockdown and Hibernation (again)</title><link>https://codon.org.uk/~mjg59/blog/p/linux-lockdown-and-hibernation-again/</link><author>Matthew Garrett</author><category>linux</category><pubDate>Tue, 13 Oct 2026 18:14:36 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Linux draws a distinction between code running in kernel (kernel space) and applications running in userland (user space). This is enforced at the hardware level - in x86-speak, kernel space code runs in ring 0 and user space code runs in ring 3. If you’re running in ring 3 and you attempt to touch memory that’s only accessible in ring 0, the hardware will raise a fault. No matter how privileged your ring 3 code, you don’t get to touch ring 0.Kind of. In theory. Traditionally this wasn’t well enforced. At the most basic level, since root can load kernel modules, you could just build a kernel module that performed any kernel modifications you wanted and then have root load it. Technically user space code wasn’t modifying kernel space code, but the difference was pretty semantic rather than useful. But it got worse - root could also map memory ranges belonging to PCI devices, and if the device could perform DMA you could just ask the device to overwrite bits of the kernel. Or root could modify special CPU registers (“Model Specific Registers”, or MSRs) that alter CPU behaviour via the /dev/msr interface, and compromise the kernel boundary that way.It turns out that there were a number of ways root was effectively equivalent to ring 0, and the boundary was more about reliability (ie, a process running as root that ends up misbehaving should still only be able to crash itself rather than taking down the kernel with it) than security. After all, if you were root you could just replace the on-disk kernel with a backdoored one and reboot. Going deeper, you could replace the bootloader with one that automatically injected backdoors into a legitimate kernel image. We didn’t have any way to prevent this sort of thing, so attempting to harden the root/kernel boundary wasn’t especially interesting.In 2012 Microsoft started requiring vendors ship systems with UEFI Secure Boot, a firmware feature that allowed systems to refuse to boot anything without an appropriate signature. This not only enabled the creation of a system that drew a strong boundary between root and kernel, it arguably required one - what’s the point of restricting what the firmware will stick in ring 0 if root can just throw more code in there afterwards? What ended up as the Lockdown Linux Security Module provides the tooling for this, blocking userspace interfaces that can be used to modify the kernel and enforcing that any modules have a trusted signature.But that comes at something of a cost. Most of the features that Lockdown blocks are fairly niche, so the direct impact of having it enabled is small. Except that it also blocks hibernation, and it turns out some people were using that. The obvious question is “what does hibernation have to do with keeping root out of kernel space”, and the answer is a little convoluted and is tied into how Linux implements hibernation. Basically, Linux saves system state into the swap partition and modifies the header to indicate that there’s a hibernation image there instead of swap. On the next boot, the kernel sees the header indicating that it’s a hibernation image, copies the contents of the swap partition back into RAM, and then jumps back into the old kernel code. What ensures that the hibernation image was actually written out by the kernel? Absolutely nothing, which means a motivated attacker with root access could turn off swap, write a hibernation image to the swap partition themselves, and then reboot. The kernel would happily resume into the attacker’s image, giving the attacker control over what gets copied back into kernel space.This is annoying, because normally when we think about attacks on swap we mitigate it by requiring an encrypted swap partition. But in this case, our attacker is root, and so already has access to the plaintext version of the swap partition. Disk encryption doesn’t save us here. We need some way to verify that the hibernation image was written out by the kernel, not by root. And thankfully we have some tools for that.Trusted Platform Modules (TPMs) are cryptographic coprocessors capable of doing things like generating encryption keys and then encrypting things with them. You can ask a TPM to encrypt something with a key that’s tied to that specific TPM - the OS has no access to the decryption key, and nor does any other TPM. So we can have the kernel generate an encryption key, encrypt part of the hibernation image with it, and then have the TPM encrypt it. We store the encrypted copy of the key in the hibernation image as well. On resume, the kernel reads the encrypted copy of the key, passes it to the TPM, gets the decrypted copy back and is able to verify the hibernation image.That’s great! Except root can do exactly the same thing. This tells us the hibernation image was generated on this machine, but doesn’t tell us that it was done by the kernel. We need some way to be able to differentiate between keys that were generated in kernel and ones that were generated in userland. TPMs have the concept of “localities” (effectively privilege levels) that would be perfect for this. Userland is only able to access locality 0, so the kernel could simply use locality 1 to encrypt the key. Unfortunately, localities are typically only available on systems that implement a Dynamic Root of Trust Measurement like Intel’s TXT, and most consumer systems have no support for this. So, we need another approach.TPMs have a set of Platform Configuration Registers (PCRs), intended for keeping a record of system state. The OS isn’t able to modify the PCRs directly. Instead, the OS provides a cryptographic hash of some material to the TPM. The TPM takes the existing PCR value, appends the new hash to that, and then stores the hash of the combination in the PCR - a process called “extension”. This means that the new value of the TPM depends not only on the value of the new data, it depends on the previous value of the PCR - and, in turn, that previous value depended on its previous value, and so on. The only way to get to a specific PCR value is to either (a) break the hash algorithm, or (b) perform exactly the same sequence of writes. On system reset the PCRs go back to a known value, and the entire process starts again.Some PCRs are different. PCR 23, for example, can be reset back to its original value without resetting the system. We can make use of that. The first thing we need to do is to prevent userland from being able to reset or extend PCR 23 itself. All TPM accesses go through the kernel, so this is a simple matter of parsing the write before it’s sent to the TPM and returning an error if it’s a sensitive command that would touch PCR 23. We now know that any change in PCR 23’s state will be restricted to the kernel.When we encrypt material with the TPM, we can ask it to record the PCR state. This is given back to us as metadata accompanying the encrypted secret. Along with the metadata is an additional signature created by the TPM, which can be used to prove that the metadata is both legitimate and associated with this specific encrypted data. In our case, that means we know what the value of PCR 23 was when we encrypted the key. That means that if we simply extend PCR 23 with a known value in-kernel before encrypting our key, we can look at the value of PCR 23 in the metadata. If it matches, the key was encrypted by the kernel - userland can create its own key, but it has no way to extend PCR 23 to the appropriate value first. We now know that the key was generated by the kernel.Unfortunately it turns out that some people actually make use of PCR 23, and
+announcement for Debian 13.7.]]></content:encoded></item><item><title>Matthew Garrett: Linux Lockdown and Hibernation (again)</title><link>https://codon.org.uk/~mjg59/blog/p/linux-lockdown-and-hibernation-again/</link><author>Matthew Garrett</author><category>linux</category><pubDate>Tue, 13 Oct 2026 18:14:36 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Linux draws a distinction between code running in kernel (kernel space) and applications running in userland (user space). This is enforced at the hardware level - in x86-speak, kernel space code runs in ring 0 and user space code runs in ring 3. If you’re running in ring 3 and you attempt to touch memory that’s only accessible in ring 0, the hardware will raise a fault. No matter how privileged your ring 3 code, you don’t get to touch ring 0.Kind of. In theory. Traditionally this wasn’t well enforced. At the most basic level, since root can load kernel modules, you could just build a kernel module that performed any kernel modifications you wanted and then have root load it. Technically user space code wasn’t modifying kernel space code, but the difference was pretty semantic rather than useful. But it got worse - root could also map memory ranges belonging to PCI devices, and if the device could perform DMA you could just ask the device to overwrite bits of the kernel. Or root could modify special CPU registers (“Model Specific Registers”, or MSRs) that alter CPU behaviour via the /dev/msr interface, and compromise the kernel boundary that way.It turns out that there were a number of ways root was effectively equivalent to ring 0, and the boundary was more about reliability (ie, a process running as root that ends up misbehaving should still only be able to crash itself rather than taking down the kernel with it) than security. After all, if you were root you could just replace the on-disk kernel with a backdoored one and reboot. Going deeper, you could replace the bootloader with one that automatically injected backdoors into a legitimate kernel image. We didn’t have any way to prevent this sort of thing, so attempting to harden the root/kernel boundary wasn’t especially interesting.In 2012 Microsoft started requiring vendors ship systems with UEFI Secure Boot, a firmware feature that allowed systems to refuse to boot anything without an appropriate signature. This not only enabled the creation of a system that drew a strong boundary between root and kernel, it arguably required one - what’s the point of restricting what the firmware will stick in ring 0 if root can just throw more code in there afterwards? What ended up as the Lockdown Linux Security Module provides the tooling for this, blocking userspace interfaces that can be used to modify the kernel and enforcing that any modules have a trusted signature.But that comes at something of a cost. Most of the features that Lockdown blocks are fairly niche, so the direct impact of having it enabled is small. Except that it also blocks hibernation, and it turns out some people were using that. The obvious question is “what does hibernation have to do with keeping root out of kernel space”, and the answer is a little convoluted and is tied into how Linux implements hibernation. Basically, Linux saves system state into the swap partition and modifies the header to indicate that there’s a hibernation image there instead of swap. On the next boot, the kernel sees the header indicating that it’s a hibernation image, copies the contents of the swap partition back into RAM, and then jumps back into the old kernel code. What ensures that the hibernation image was actually written out by the kernel? Absolutely nothing, which means a motivated attacker with root access could turn off swap, write a hibernation image to the swap partition themselves, and then reboot. The kernel would happily resume into the attacker’s image, giving the attacker control over what gets copied back into kernel space.This is annoying, because normally when we think about attacks on swap we mitigate it by requiring an encrypted swap partition. But in this case, our attacker is root, and so already has access to the plaintext version of the swap partition. Disk encryption doesn’t save us here. We need some way to verify that the hibernation image was written out by the kernel, not by root. And thankfully we have some tools for that.Trusted Platform Modules (TPMs) are cryptographic coprocessors capable of doing things like generating encryption keys and then encrypting things with them. You can ask a TPM to encrypt something with a key that’s tied to that specific TPM - the OS has no access to the decryption key, and nor does any other TPM. So we can have the kernel generate an encryption key, encrypt part of the hibernation image with it, and then have the TPM encrypt it. We store the encrypted copy of the key in the hibernation image as well. On resume, the kernel reads the encrypted copy of the key, passes it to the TPM, gets the decrypted copy back and is able to verify the hibernation image.That’s great! Except root can do exactly the same thing. This tells us the hibernation image was generated on this machine, but doesn’t tell us that it was done by the kernel. We need some way to be able to differentiate between keys that were generated in kernel and ones that were generated in userland. TPMs have the concept of “localities” (effectively privilege levels) that would be perfect for this. Userland is only able to access locality 0, so the kernel could simply use locality 1 to encrypt the key. Unfortunately, localities are typically only available on systems that implement a Dynamic Root of Trust Measurement like Intel’s TXT, and most consumer systems have no support for this. So, we need another approach.TPMs have a set of Platform Configuration Registers (PCRs), intended for keeping a record of system state. The OS isn’t able to modify the PCRs directly. Instead, the OS provides a cryptographic hash of some material to the TPM. The TPM takes the existing PCR value, appends the new hash to that, and then stores the hash of the combination in the PCR - a process called “extension”. This means that the new value of the TPM depends not only on the value of the new data, it depends on the previous value of the PCR - and, in turn, that previous value depended on its previous value, and so on. The only way to get to a specific PCR value is to either (a) break the hash algorithm, or (b) perform exactly the same sequence of writes. On system reset the PCRs go back to a known value, and the entire process starts again.Some PCRs are different. PCR 23, for example, can be reset back to its original value without resetting the system. We can make use of that. The first thing we need to do is to prevent userland from being able to reset or extend PCR 23 itself. All TPM accesses go through the kernel, so this is a simple matter of parsing the write before it’s sent to the TPM and returning an error if it’s a sensitive command that would touch PCR 23. We now know that any change in PCR 23’s state will be restricted to the kernel.When we encrypt material with the TPM, we can ask it to record the PCR state. This is given back to us as metadata accompanying the encrypted secret. Along with the metadata is an additional signature created by the TPM, which can be used to prove that the metadata is both legitimate and associated with this specific encrypted data. In our case, that means we know what the value of PCR 23 was when we encrypted the key. That means that if we simply extend PCR 23 with a known value in-kernel before encrypting our key, we can look at the value of PCR 23 in the metadata. If it matches, the key was encrypted by the kernel - userland can create its own key, but it has no way to extend PCR 23 to the appropriate value first. We now know that the key was generated by the kernel.Unfortunately it turns out that some people actually make use of PCR 23, and
 restricting it to the kernel makes them sad. There are other resettable PCRs, but only in non-0 localities, so (a) we can’t reset them on most systems and (b) we’ll just find someone who uses them anyway and run into the same problem. We need a different approach.Thankfully TPMs have a small chunk of non-volatile RAM that can be used for storing things, and by “storing” I mean they can be used in a range of different ways. One of these is effectively as additional PCRs. These values can be configured such that they work the same way as PCRs, with the only way to modify them being to append a new hash to their existing value and update the new value to the hash of that merged value. We can allocate one of these for in-kernel use and reject any access from userspace, and also there are officially allocated ranges (so people shouldn’t be using random values) and the namespace is large enough anyway that w eshouldn’t collide with anyone, so we can carve one of those out and use it for this purpose.Unfortunately, though, these NV indexes aren’t included in the creation data we get when we create a key, so we need another approach. TPMs have the concept of sessions, a series of commands executed in sequence. A flag allows these sessions to be “audited”, with the TPM keeping a running track of the hash of the commands executed and the results returned. At the end of the session you can ask for a signed copy of this hash, and if you’ve kept a log of all the commands then you can verify that they match that signed hash and know that this log represents a real communication with the TPM. If we read the NV index and generate the key inside the same session, we can verify that the key we’re looking at was created while the NV index had a specific value, and if only the kernel can set that value then we know that the key was generated by the kernel.Or, well, can we? Only new kernels would impose the restriction on modifying that NV index. An attacker could boot an old kernel, generate a key there in userland, sign a hibernation image with it, and then reboot into a new kernel. The new kernel would see a valid signature with a valid NV index associated with it and have no way to know it was generated from userland rather than the kernel. We need to be able to tell the difference between kernels that implement this feature and ones that don’t, and we need to do that without being able to go back in time to change old kernel behaviour. We can extend a PCR to indicate we implement the new functionality, but so can an attacker running an old kernel.The normal approach to determining whether an event occurred in a specific phase of the boot process is to “cap” the PCRs - extend them with a known value that indicates a transition between stages of the boot process. Any events that occur before the cap event must have occurred in the previous stage of boot, and since the final PCR value depends on the order of measurements and not just the contents of those measurements, if a PCR is capped before userland runs, userland can’t fake the same PCR value afterwards. If Linux capped the PCRs before userland started running, we’d be able to place a measurement there before the cap occurred and then prove that that extension occurred before userland had the opportunity to interfere. We could simply place a statement that the kernel supported the NV index restrictions there, and we’d be fine.Unfortunately Linux doesn’t currently do this, and adding support for doing so doesn’t fix the problem - if an attacker boots a kernel that doesn’t cap a PCR, they can just cap it themselves from userland. So, we’re faced with the same problem: booting an older kernel allows the system to be placed in an identical state to the current kernel, and a fake hibernation image can be written out. Solving this requires a PCR that was being modified after kernel code was running, but before userland was started, even with existing kernels.Thankfully, there is one! PCR 5 is defined as containing measurements related to boot management configuration and data. One of the measurements it contains is the result of the UEFI ExitBootServices() call. ExitBootServices() is called at the transition from the UEFI boot environment to the running OS, and the kernel contains code that executes before it. So, if we measure an assertion regarding whether or not we support restricted access to NV indexes into PCR 5 before we call ExitBootServices(), this will prevent userspace from spoofing us (because userspace will only be able to extend PCR 5 after the firmware extended PCR 5 in response to ExitBootServices() being called). Obviously this depends on the firmware actually performing the PCR 5 extension when ExitBootServices() is called, but if firmware’s out of spec then I don’t think there’s any real expectation of it being secure enough for any of this to buy you anything anyway.That’s what this patchset does. Review feedback so far seems positive, although James Bottomley suggested a design improvement. My approach of using an NV index as a PCR and generating a signing key made sense as a consequence of my original approach involving PCR 23, which had been to use the key creation data and not use audit sessions at all. But the goal isn’t to use a key - it’s to prove that hibernation occurred in-kernel, and while signing is one way of doing that, there are others. His suggestion is to simply record the hash of the hibernation image into the NV index and then read that back as part of the audit session. On resume we verify the audit session log is legitimate, read the hibernation image, and compare the hash of the hibernation image against the hash in the log. If it matches, and if the PCR 5 value matches, we know the audit session happened in kernel and that the hibernation image hasn’t been modified.It still seems like we’re missing something, though. If we’re not storing a key anywhere, how do we verify the audit session? To explain this we’re going to need to go into some details about how TPM keys work in the first place. TPMs can produce a special kind of key called an Attestation Key, or AK. Attestation keys are used to sign attestation statements from the TPM, such as PCR quotes or audit logs. We need a separate key type for this in order to prove that the signature was generated as part of an attestation - normal TPM signing keys are fundamentally designed to sign arbitrary material, and so can be used by userland to sign something that looks identical to an attestation record. By being able to distinguish the types of key the TPM uses, we can prove that a signature was generated using an AK, and so know that it’s a real TPM attestation (because nothing other than the TPM can sign stuff with an AK).But even beyond this distinction, TPMs have different key types. Ordinary keys are generated using an RNG and will be unique. Primary keys are generated using a seed that is used as an input into a key derivation function. For a given TPM, using the same seed to generate the same type of primary key will always generate the same primary key. We can have the kernel deterministically generate an AK during suspend in order to sign the audit log, and then generate the same key again on resume to validate it. This means we don’t need any other form of trusted storage for the AK - the TPM already provides that functionality.This is all rather complicated but I’ve been thinking about this for some time now and I haven’t come up with a cleaner solution. The only real open issue is the degree to which machines actually perform the PCR 5 extension. If it turns out there’s a bunch that don’t we’ll need to come up with some alternative approach to identifying whether the kernel supports this functionality, but the design is such that that should be invisible to userspace so adding alternatives later shouldn’t be an issue. Filtering accesses to the NV index is also not super clean, and depends on there not being alternative mechanisms to get at the TPM by sending raw commands. Again, this is intended to be opaque to userland and can be improved if we come up with something better later on (such as a secure way to pass a secret to the kernel on boot that can be used as an auth value for acess to the NV index).Anyway. Time to go and fix the next thing.]]></content:encoded></item><item><title>Russ Allbery: Review: Daggerbound</title><link>https://www.eyrie.org/~eagle/reviews/books/1-250-40009-0.html</link><author>Russ Allbery</author><category>linux</category><pubDate>Sun, 11 Oct 2026 04:48:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Review: , by T. Kingfisher is a secondary-world fantasy and a sequel to
 , although it follows
 different protagonists for most of the book. It's also a sort of sequel to
@@ -954,672 +1028,4 @@ believe final) book, which is supposed to be out next year.
 Recommended if you liked .
 
 Followed by the not-yet-published .
-]]></content:encoded></item><item><title>Tim Retout: Reading my solar inverter over RS485</title><link>https://retout.co.uk/2026/10/10/zeversolar-esphome/</link><author>Tim Retout</author><category>linux</category><pubDate>Sat, 10 Oct 2026 11:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[For over ten years, the only way I have had of knowing what our solar
-panels are doing has been an impulse monitor on the generation meter,
-counting the flashes of its LED.  It has always been a bit flaky due
-to battery changes or loose connections, and there has never been a
-way to see solar generation alongside the energy used by the rest of
-the house.  This week I have fixed that, by building a small ESPHome
-sensor which talks directly to the inverter.  I am still reeling
-slightly: with AI assistance, it took under a week from idea to
-working implementation, and it is a project I would certainly 
-have attempted otherwise.  The result is
-zeversolar-esphome.The inverter is a Zeversolar Zeverlution 3680, which has an RS485 port
-but no Wi-Fi or Ethernet module.  It doesn’t speak Modbus; it uses
-Eversolar’s own master/slave protocol, which nobody has officially
-documented but which several people have reverse-engineered over the
-years (credit to
-eversolar-monitor,
-Heliograph and
-others).
-Manufacturer support for Eversolar/Zeversolar inverters apparently
-ended in December 2019 when the company went out of business.The rating plate on my inverter.A while ago I had looked into what ports were available on this
-inverter with a view to connecting some sort of monitoring, but I had
-abandoned it as “too hard”.  While working on some Home Assistant
-configuration, Claude suggested the idea again, but similarly wrote it
-off initially.  I encouraged it to explore a bit further, and supplied
-the model number of the inverter, at which point the picture got a lot
-more promising.  After a bit of back-and-forth about hardware, we
-settled on an M5Stack Atom Lite on an Atomic RS485
-Base.  The
-main attraction was that it already comes in a case, so I didn’t need
-to design (or, more likely, bodge) an enclosure.While I waited for the parts to arrive, Claude wrote the firmware: an
-ESPHome external
-component built
-around a small, dependency-free C++ driver, with host-side unit tests
-against byte captures that other people had published from other
-models.  I found it slightly surreal to have a tested protocol driver
-before owning any hardware to run it on.The parts came before the tools I needed to get into the inverter
-safely (a DC clamp meter and a T25 screwdriver bit), so in the
-meantime I made up an RS485 cable - this uses an RJ45 connection at
-one end, and some custom wiring at the other.  My first attempt was
-with some CAT 6, but (as Claude had pointed out and I had ignored) its
-solid-core conductors are much harder to twist together.  So I gave up
-and sacrificed an old CAT 5e patch lead instead, which went much
-better.The custom end of the cable, before being taped up.On a Zeverlution, the RJ45 sockets are inside the wiring compartment,
-which means taking the cover off to install the monitor.  The manual
-addresses this part to qualified electricians.  So the step I was most
-nervous about was not the software at all, but safely isolating the
-inverter.Inside the inverter, with the cover off.I did this with appropriate caution, following the instructions from
-the manual carefully, and also waiting until after dark just in case.
-Now that I understand how the DC clips from the panels work, I can see
-how to do this safely during daytime too – but hopefully this won’t
-be necessary.Plugged in, and threaded through the cable gland. if you’re not confident, I would always advise to get an
-electrician to do this bit.  Do what I say, not what I do.Once the device was installed, the nice thing about ESPHome is that I
-never need to go back in the loft again to update it – it reflashes
-over Wi-Fi.  I’ve taken full advantage of this for debugging, and for
-reading the wire protocol directly from the logs.The finished device. Green means generating.Separately, I’ve used Claude to integrate the new sensors into Home
-Assistant.  Solar generation finally sits in the Energy dashboard
-next to the rest of the house’s usage, which was the whole point.This was a fun, quick project, and it solved a problem that has eluded
-me for a decade.  I want to be honest about how much of that is down
-to the AI: I would not have attempted any of this on my own.  I could
-not have told you the protocol existed, never mind implemented it.  My
-contribution was everything involving a screwdriver, and ordering some
-hardware.]]></content:encoded></item><item><title>Jelmer Vernooĳ: Mailsift: Extracting structured data from email messages</title><link>https://www.jelmer.uk/mailsift.html</link><author>Jelmer Vernooĳ</author><category>linux</category><pubDate>Sat, 10 Oct 2026 10:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[As a casual user of Gmail, I find its ability to recognize when I’ve received
-tickets, invoices, and flight confirmations, and to display this
-information in a structured way, very useful. Flights appear directly in Google
-Calendar, parcel delivery statuses are tracked, and reservations are easy to
-find at a glance.However, my main email address is not Gmail, and I don’t want to migrate
-to Gmail for a number of reasons (privacy, data sovereignty, vendor lock-in).
-At the same time, I missed having that automatic extraction: having flight and
-train bookings appear in my calendar without manual copy-pasting, keeping track
-of incoming parcels, and having invoices neatly organized.There is an established standard format for structured data called
--, which is used by Google and other search
-engines to extract structured data from web pages. - represents linked
-data using , and it can be embedded directly in  documents.Email messages can also contain structured data in the form of -,
-which can link the information in the email to external data sources. There are
-standardized schemas for structured data in email messages, such as the
-schema.org vocabulary, which defines types and
-properties for describing entities including flight reservations, train trips,
-hotel bookings, parcel deliveries, and invoices.For example, an email containing a flight reservation might embed the following
-- snippet:When this is present, reading email data is clean and straightforward. The
-reality, however, is that only a fraction of vendors actually include
-schema.org markup in their emails. Most airlines, train operators, couriers, and
-web shops still send regular  or plain-text messages with arbitrary layouts
-that change over time.To bridge this gap on my own infrastructure, I built mailsift. Written in Rust, it is a daemon and 
-tool that monitors incoming email, extracts structured information, and routes
-it to standard files and services.Rather than locking data into an internal database, mailsift embraces the Unix
-philosophy: it delegates extraction to small, isolated programs and files the
-resulting structured artifacts into standard formats and protocols:Calendar events  reservations: Turned into iCalendar () events and
-pushed directly to a CalDAV server (such as Xandikos)
-or stored in a local directory.: Extracted as structured  records, organized by year,
-and optionally synced to a personal finance manager like Firefly .: Extracted as delivery records keyed by tracking number, merged
-across status update emails, and optionally registered with tracking APIs like 17track or Karrio.: Saved as PDFs, Apple Wallet passes (),
-or images, accompanied by  metadata sidecars linking them to the booking.: Filed as  records, synced over WebDAV, or forwarded
-via email.In real life, travel bookings or receipts are often forwarded by family,
-friends, or colleagues. By default, forwarded mail would fail sender checks, and
- signatures on inline forwards are broken by mail clients.Mailsift handles this via a  configuration. When an email
-arrives from a trusted forwarder, mailsift unwraps the forwarded message:: If the original email was attached as
-, mailsift extracts the original message and re-evaluates
-the vendor’s  signature on the inner message.: Mailsift reconstructs a synthetic  message from the
-client’s forwarded quotation header block and quotes, deriving a deterministic
-Message-.This means hotel confirmations or flight tickets forwarded by a partner still
-end up in the family calendar automatically.Mailsift fits into existing email setups in several ways:For local delivery, Sieve provides an elegant integration using the
- plugin. Because Sieve runs during local delivery after
-Dovecot has validated  and added ,
- checks work as expected:The  flag ensures the email continues to the user’s inbox while a copy
-is piped through mailsift.If you don’t run your own mail server, or want to process mail on an existing
-remote mailbox,  connects over :mailsiftimap-scanimaps://user@mail.example.com/INBOX--password-file~/.config/mailsift/imap.pass--watch
-With , mailsift uses  ( 2177) to wait for new messages
-and process them as they arrive. It supports standard passwords, Kerberos (), and OAuth2 () for providers like Gmail and Microsoft 365 via
-an interactive  flow.:  runs as an  filter, processing
-messages in real-time as they pass through Postfix.:  walks an on-disk Maildir folder,
-useful for backfilling historical mail.:  runs extractors on a single
-saved message file, which is invaluable when writing or testing an extractor.In addition to routing data to CalDAV and disk, mailsift includes an optional
-read-only web dashboard ():mailsiftweb--listen.0.0.1:8088
-The dashboard provides an overview of upcoming trips, arriving packages,
-unpaid bills, and recent orders. It rescans the artifact directories on request,
-so it stays in sync with incoming mail without needing a separate database.
- endpoints (such as  or ) are also
-available for custom status scripts or home automation dashboards.Status and getting involvedMailsift has been running reliably on my mail server for over a year, and having
-flights, hotel bookings, and train journeys seamlessly sync into my calendar
-without relying on proprietary cloud services has been very satisfying.The project is free software under the -3.0:Adding support for new vendors only requires writing a small  manifest and a
-Python script with a couple of regexes. If you have vendors you’d like to
-extract data from, contributions of new extractors are very welcome!]]></content:encoded></item><item><title>Colin Watson: Free software activity in September 2026</title><link>https://www.chiark.greenend.org.uk/~cjwatson/blog/activity-2026-09.html</link><author>Colin Watson</author><category>linux</category><pubDate>Fri, 9 Oct 2026 12:46:28 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[My Debian contributions this month were all sponsored by Freexian.I upgraded from 1.24.1 to 1.24.2, which fixed a few command injection security vulnerabilities.setuptools 84 is now in Debian and no longer contains .  Removing uses of that module has been an ongoing project for a while now, but I did another batch of fixes this month:A new python-coverage version triggered several build regressions due to a known problem in pytest-cov.  I worked around these by setting :Other build/test failures:]]></content:encoded></item><item><title>Louis-Philippe Véronneau: Removing myself as a Lintian uploader in the next few weeks</title><link>https://veronneau.org/removing-myself-as-a-lintian-uploader-in-the-next-few-weeks.html</link><author>Louis-Philippe Véronneau</author><category>linux</category><pubDate>Fri, 9 Oct 2026 04:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[A few days ago, a colleague reached out to me, asking if I could help draft a
-resolution on digital autonomy and free software for the upcoming renewal of
-our collective bargaining agreement. Although she's very politicised and
-generally a great individual, she is not a techie and we never really talked
-about these issues before.This took me by surprise. I should have been rejoicing; no, I should have been
-the one who brought up this topic in our union. Wasn't I the technical expert
-on these issues? But alas, my first reaction when she came to me was to snicker
-and tell myself: "That's cute, but nothing's ever gonna change, Big Tech is too
-strong and our governments don't give a damn."How sad and cynical is that? That's not the person I want to be.Something in the Quebecois political landscape has shifted in the last few
-years with regards to tech. More and more "regular" people seem to be talking
-about the importance of digital autonomy, how government services shouldn't
-rely on Big Tech and how we should be using FOSS on hardware we actually
-control.A few years ago, I would have been at the vanguard of this change. I would have
-been part of the creation of Données souveraines Québec. Heck, they are
-organising a whole conference next week and I'm not even going. How did
-this happen to me?I first fell for Free Software for its political ideals: Knowledge Should Be
-Free, Cooperation Is More Efficient Than Competition, Centralisation Should Be
-Avoided When Possible, etc. I still believe in all of this, but somehow, after
-years of fighting for change in the tech world, I have retreated into technical
-work. I maintain Debian packages as a hobby and to scratch my own itch. I run
-services for myself and a few friends. I organise Debian User Group meetings.To be clear, I haven't generally given up. I'm very politically active in my
-union and at work, I'm a good member of my housing cooperative and I'm still
-fighting against the industrialisation of natural spaces in my
-neighborhood. But when it comes time to defend freedom in the tech
-world, lately, I've just been shrugging and accepting I should use Microsoft
-Teams like every one else does. I want this to change and to do so, I need to
-free some time.Two years ago, I added myself to Lintian's Uploaders list. Up until
-then, I enjoyed fixing little issues here and there and liked creating
-new tags to help out the Python Team, where most of my Debian time was spent.Lintian was badly in need of a new maintainer and as I felt it was an important
-project, I decided to step in. 37 releases and about 160 closed bugs
-later, I'm done.To be honest, I haven't had much fun maintaining Lintian lately. Bugs keep
-piling on the BTS, so much so I have mostly been ignoring them for the past few
-months. In fact, most of the actual work triaging, writing code and fixing bug
-has been done by Nilesh Patra for a while now.All this to say, if you care about Lintian, you should consider adding yourself
-to the Uploaders list, as I'm out and Nilesh can't do all the work by himself.He's a great person to work with and since I don't want to suddenly leave him
-all alone, I'll be sticking around for a few more weeks in the hope someone
-else will volunteer to help out. A smooth transition with a new co-maintainer
-would really be nice!If you're interested, don't hesitate to reach out to me on IRC or by email.]]></content:encoded></item><item><title>Reproducible Builds (diffoscope): diffoscope 333 released</title><link>https://diffoscope.org/news/diffoscope-333-released/</link><author>Reproducible Builds (diffoscope)</author><category>linux</category><pubDate>Fri, 9 Oct 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The diffoscope maintainers are pleased to announce the release of diffoscope
-version . This version includes the following changes:[ Johannes Schauer Marin Rodrigues ]
-* Add support for showing differences in POSIX.1-2001 PAX headers within .tar
-  files.
-
-[ Chris Lamb ]
-* Re-order various parts of the tar comparator to make it easier to
-  progressively delve into its functionality.
-* Reflect that the use of the "case-match" language feature requires at least
-  Python 3.10+. This can be worked around if it causes problems - let us know.
-* Update various copyright years.
-]]></content:encoded></item><item><title>Antoine Beaupré: PSA: Europe changes time forward soon, North America next, for the last time?</title><link>https://anarc.at/blog/2026-10-08-dst-warning/</link><author>Antoine Beaupré</author><category>linux</category><pubDate>Thu, 8 Oct 2026 19:30:02 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[This is a copy of an email I sent at work. I'm not sure I
-should be making noise about this here, feedback welcome.This is your bi-yearly reminder that time is changing soon! October 25th
-in Europe, November 1st in North America. Less people in Canada are
-changing this year, with BC, Alberta, Manitoba and Northwest
-Territories getting rid of DST.Some places in the world implement what is called Daylight saving time
-or DST:https://en.wikipedia.org/wiki/Daylight_saving_timeNormally, you shouldn't have to do anything: computers automatically
-change time following local rules, assuming they are correctly
-configured, provided recent updates have been applied in the case of a
-recent change in said rules (because yes, this happens, and happened
-this year, and yes, you need to upgrade your software!).Of course, appliances like your microwave oven will likely  change
-time and will need to adjusted unless they are so-called "smart", in
-which case they are part of the skynet botnet and should be destroyed.If your clock is flashing "0:00" or "12:00", you have no action to take
-to adapt to this change, lucky you.If you haven't changed time in six months, congratulations, your clock
-will be accurate again!In any case, you should still consider DST because it might affect some
-of your meeting schedules, particularly if you set up a new meeting
-schedule in the last 6 months and forgot to consider this change.Properly scheduled meetings affecting multiple time zones are set in UTC
-time, which does  change. So if your location does not observer
-time changes, your (local!) meeting time will  change.But be aware that some other folks attending your meeting  have
-the DST bug and  meeting times will change.Be kind to those poor souls which might be missing meetings by a full
- because time flies backwards for them.If you are affected by daylight savings, your  meeting times
- change for UTC meetings. Normally, your meeting times are
-scheduled to take this into account and the new hours should be
-reasonable.But now is a good time to verify that. Take a look at your schedule for
-the next couple of weeks and reschedule meetings  the daylight
-saving come up to avoid too much disruption. You have only a couple of
-weeks to do so right now.As regular readers will remember, the rule of thumb is:Spring forward, fall backwards.That is, during the season of Spring, the clocks move forward, and
-during the Fall (like right now), they move backwards. That is in the
-northern hemisphere, but then the southern hemisphere is often saner and
-doesn't switch anyways.So time will move  which means an extra hour of sleep. Unless
-you have children or bad sleep, in which case your body doesn't care
-about what the clock says and will wake up one hour earlier than what it
-should.And of course, this doesn't happen everywhere at once, so let's see when
-it happens where.The dance starts in Europe.The change happens on the last Sunday in October at 01:00 UTC (not local
-time!), that is October 25th. If you are in the central European
-timezone, also known as Amsterdam, Berlin, or Paris time depending on
-your national affiliation, that essentially means that at 2:59 local the
-clocks will fall back to 2:00 instead of going to 3:00.Concretely, set your watch back one hour before going to bed, go to bed
-at the normal time, and enjoy an extra hour of sleep or leisure.If you have kids, you might want to start getting them to bed slightly
-earlier every day for a week before the change so they take time getting
-used to the change. If you have trouble sleeping in the morning, find
-your inner child and do that to yourself as well.Then it's the US[1] and Canada[2] joining the dance, on the First Sunday in
-November at 02:00 local (not UTC!), that is, I believe, November 1st
-2026.This means that, at 1:59, the clocks will flip to 1:00, instead of 2:00.Concretely, do like the Europeans and tweak your clock before going to
-bed.That is a little less than four weeks from now.[1] except Arizona (except the Navajo nation), US territories, and
-Hawaii[2] except Yukon, Saskatchewan, (newly) British Columbia, (newly)
-Alberta, (newly) Northwest Territories, (newly) Manitoba, one island in
-Nunavut (Southampton Island), one town in Ontario (Atikokan) and small
-parts of Quebec (Le Golfe-du-Saint-Laurent)This time again, I must apologize to the people of Cuba, Lebanon,
-Israel, Palestine, Egypt, Chile, Australia, and New Zealand, as you fine
-folks all have your own DST rules that are omitted here for brevity. I
-rely on this page from Wikipedia to be updated by time nerds accurately
-for this message, and it should provide you with a rough idea of what's
-coming:https://en.wikipedia.org/wiki/Daylight_saving_time_by_countryIn general, changes also happen in October, but either on different
-times or different days, except in the south hemisphere, where they
-might happen in September (oops, sorry NZ folks, I'm late!).Everyone else, enjoy, you're on the right side of history, and we thank
-you for the good example you give us.There's been  of changes since last time:British Columbia moved to permanent -07 on 2026-03-09, that is it
-will  change to normal time in NovemberAlberta moved to permanent -06 on 2026-06-18, similar to BC above.Canada’s Northwest Territories moved to permanent -06 on 2026-08-21,
-matching Alberta.Manitoba moves to permanent -05 on 2026-10-31.Morocco moves to permanent +00 on 2026-09-20.Moldova has used EU transition times since 2022, but the tz database
-only noticed in 2026This is my interpretation of the changes announced on the tzdata mailing
-list here:https://lists.iana.org/hyperkitty/list/tz-announce@iana.org/latestIf the eastward trend continues, Canada should adopt country-wide "no
-daylight savings" rules by 2027, although there's actually no sign of
-the other provinces (Ontario, Québec and so on) currently running bills
-to change those rules just yet. Poor Canadians like me confused about
-time in their countries can refer to this section of Wikipedia for
-details:https://en.wikipedia.org/wiki/Daylight_saving_time_in_Canada#By_province_and_territory... and particularly the image featured there:https://commons.wikimedia.org/wiki/File:Canada_time_zone_mapen.svgIt also seems like the US government  finally adopt a permanent
-daylight saving change bill in 2026, as the "Sunshine protection act"
-pass the house in July:https://en.wikipedia.org/wiki/Sunshine_Protection_ActTrue to form, this was associated with absolutely ridiculous pressure
-from Donald Trump against republicans (his own party!) objecting to the
-change:On July 14, 2026, the House passed a Sunshine Protection Act bill
-backed by President Trump. Nevertheless, the bill was opposed in the
-Senate by Republicans, including Senator Cotton. In response, on
-October 3, 2026, Trump shared a post on Truth Social urging Cotton to
-approve the bill, where he revealed Cotton's personal cellphone number
-and called on people to call him.https://www.theguardian.com/us-news/2026/oct/03/trump-tom-cotton-daylight-saving-timeGiven that the last time the US did a major change to the daylight
-savings policy (in 2005), Canada followed suit to stay in sync, it's
-quite possible Trump's mad dash might actually finish getting rid of DST
-in North America:https://en.wikipedia.org/wiki/Energy_Policy_Act_of_2005#Change_to_daylight_saving_time]]></content:encoded></item><item><title>Thorsten Alteholz: My Debian Activities in September 2026</title><link>http://blog.alteholz.eu/2026/10/my-debian-activities-in-september-2026/</link><author>alteholz</author><category>linux</category><pubDate>Thu, 8 Oct 2026 17:19:04 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[This was my hundred-forty-seventh month that I did some work for the Debian LTS initiative, started by Raphael Hertzog at Freexian.
-
-During my allocated time I uploaded or worked on:  
-[DLA 4804-1]  libsmpp34 security update to fix one CVE in Bookworm related to an out of bound read.[#1149107] trixie-pu of libsmpp34 has been created and wait for review by the release team.[DLA 4805-1]  mkvtoolnix security update to fix one CVE in Bookworm related to a heap buffer overflow.
-[DLA 4806-1] pgextwlist security update to fix one CVE in Bookworm related to substituting extension schemas or owners matching [“$’\].
-[ELA-1837-1] mkvtoolnix gimp security update to fix one CVE in Bullseye to a heap buffer overflow.[osmo-iuh] upload to fix a CVE related to a reachable assertion in Sid.
-Besides doing these uploads, the month was filled with unscheduled meetings, discussions and explanations, all basically around the role of FD.
-During my week of FD duties, I had to become familiar with new tools. As there are several things that FD has to do over and over again, I tried to automate this a bit. My experiments went well and I think this can be used to make FD duties less repetitive.
-I also continued my work on  and  and I am confident that I can do uploads in October.
-Last but not least I spend some time on security-master to assist others (especially the kernel team) with uploads to Bookworm and Bullseye.
-
-In case you need to get a complete clone of the security-tracker, using the option  might be of help. Unfortunately in case you choosed n too high and some kind of error appears, something gets into a mess and you need to start almost from the beginning (some objects are still present and are used again). If you want to run a script, a value of  might be a good choice. You don’t have to  back to the beginning. At some point in time you can just  and get the whole rest. Afterwards doing a  is highly recommended.This month I uploaded a new upstream version  or a bugfix version of:… hplip to unstable, to fix an expired certificate and some bugs.This work is generously funded by Freexian!Unfortunately this month my work did not make any progress.Unfortunately I had no time to work in this category this month.Unfortunately I had no time to work in this category this month.This month I uploaded a new upstream version  or a bugfix version of:This month I uploaded a new upstream version  or a bugfix version of:]]></content:encoded></item><item><title>Kentaro Hayashi: Testing Japanese IMEs on virtual desktops with virt-japanese-desktop</title><link>https://kenhys.hatenablog.jp/entry/2026/10/07/214713</link><author>Kentaro Hayashi</author><category>linux</category><pubDate>Wed, 7 Oct 2026 12:47:13 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Japanese input method editors (IMEs) such as  are essential for typing
-Japanese (yes, skk, anthy and more, but it's out-of-scope in this article). Testing them is a surprisingly fiddly job: an IME behaves differently
-depending on the desktop environment (GNOME, KDE, Xfce, Budgie), the input
-framework (ibus, fcitx5, uim), and the Wayland or X11 session. Setting up a
-fresh VM for every combination from scratch is slow and repetitive, and
-breaking your host's environment while experimenting is no fun. is a small set of toy scripts that solves exactly this
-problem. It builds ready-to-use virtual machines - each with a desktop
-environment and a Japanese IME already installed and configured - so you can
-start typing Japanese within a minute of booting, and throw the whole thing
-away without any impact on your host.A single  command produces a qcow2 image that combines one of four
-desktops with one of three IMEs:The one gap -  - is a real technical limitation, not an
-oversight: Budgie runs the labwc compositor, which implements
-, while  only speaks the older
- (KWin/Weston). On Budgie you use ibus-mozc or fcitx5-mozc
-instead.All images come with the Japanese locale, fonts, and the  time
-zone pre-configured, plus the SSH key of your choice. Input switching is wired
-up out of the box:  or  for your IMEs to enable it.The core idea is that the images are stacked qcow2 overlay layers, one on
-top of another:debian-sid-nocloud-amd64-daily.qcow2     ... base image you download
-└─ unstable-japanese-template.qcow2      ... locale, fonts, user, SSH
-   └─ unstable-<DE>-template.qcow2       ... a desktop environment
-      └─ unstable-<DE>-<IME>.qcow2       ... desktop + IME, configured
-         └─ unstable-<DE>-<IME>.workspace.qcow2 ... the image you test inThis makes both building and resetting fast. The first build downloads and
-customizes the base image and takes a while, but every later step only adds a
-thin overlay. When a test breaks the VM, you do not rebuild anything - you
-simply delete the top  layer and recreate it. That is all it takes
-to return to a pristine state: /tmp/unstable-gnome-ibus-mozc.workspace.qcow2
-make gnome-ibus-mozc
-The images reference their backing files by , so you can move
-an entire stack anywhere you like as long as the images stay together.The base system is Debian , and the 
-repository is already added. That makes the project a convenient platform for
-testing not just the IME packages in sid but also the ones still being
-developed in  - exactly what the project was built for.The keyboard layout of the VM follows the layout of your host (read from
-, with a fallback chain to  and finally
-).
-sudo apt install qemu-utils libguestfs-tools virt-install curl
-
-
-curl  https://github.com/USERNAME.keys  pubkey.pub
-
-
-make download
-
-
-make gnome-ibus-mozc
-
-
-./scripts/make-virsh-image.sh virt-gnome-ibus-mozc /tmp/unstable-gnome-ibus-mozc.workspace.qcow2
-Log in as  (password ) and press  () to start
-typing Japanese. The VM is registered in libvirt, so you can manage it with
- or  - handy for opening the SPICE console or restarting
-the machine after a test.The project is still in the  phase, and it is developed
-mainly to test Mozc and other IMEs across desktops and input frameworks.If you regularly test Japanese IMEs - give it a try.]]></content:encoded></item><item><title>Bits from Debian: Looking for artwork for the next Debian release: Forky</title><link>https://bits.debian.org/2026/10/forky-artwork-cfp.html</link><author>Jonathan Carter</author><category>linux</category><pubDate>Wed, 7 Oct 2026 09:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Each release of Debian has a shiny new theme which is visible on the installer,
-the boot screen, the login screen and, most prominently, on the desktop
-wallpaper. It's a very important part of a Debian release as it is usually the
-first thing new users see when installing or booting the system for the first
-time. Not only that, but also the first thing appearing when debianites share
-their screen or connect to an external device when giving talks around the
-world.As the most enthusiastic users will know, the forky - yes, that is the name of
-the next stable version, Debian 14 - release cycle is rapidly approaching its
-latter stages. This means we need to select the artwork shipping with forky
-soon, really soon!And as with everything else in Debian, collecting artwork is a collaborative
-effort which Debian shares with its community.  So, if you would like (or know
-someone who would like) to create a desktop look and feel that will be seen by
-trillions of people around the world - and in space! - be sure to send in your
-artwork ASAP!The deadline for submissions is: 2026-11-26.For the most up to date details please refer to the Debian
-wiki.At the same time, we would like to thank Elise Couper for creating the
-Ceratopsian theme for
-our last trixie release.And for the interested or the curious ones, the artwork is usually picked
-based on which theme looks the most:''Debian'': admittedly not the most defined concept, since everyone has their
-  own take on what Debian means to them. Though, usually they all agree when
-  something looks like Debian.''Plausible to integrate without patching core software'': as much as we love
-  some of the insanely looking themes, some would require heavy GTK+ theming
-  and patching GDM/GNOME.''Clean and well designed'': without becoming something that gets annoying to
-  look at a year, or ten, down the road.  Examples of good themes include
-  Emerald, Homeworld, Joy, Lines, softWaves and futurePrototype]]></content:encoded></item><item><title>Utkarsh Gupta: FOSS Activities in September 2026</title><link>https://utkarsh2102.org/posts/foss-in-sept-26/</link><author>Utkarsh Gupta</author><category>linux</category><pubDate>Mon, 5 Oct 2026 05:41:11 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Here’s my monthly but brief update about the activities I’ve done in the FOSS world.Whilst I didn’t have much time, here are still a few things that I worked on:Assisted a few folks in getting their patches submitted via Salsa.Moderation of -project mailing list.With 26.10 in Feature Freeze, wore my Release team hat to:
-Review and approve a bunch of Feature Freeze Exceptions, including the Go 1.27 transition, Qt 6.11.2, rust-coreutils 0.12.0, devscripts 2.6.12, kdump-tools moving to dracut, and a few GCE packages.Point linux-entra-sso to the SRU team, as it didn’t need an FFe at all, and milestone a couple of bugs for 26.10.Continued to push for infrastructure improvements:
-Made ubuntu-cdimage more resilient to Launchpad hiccups (MP).Taught  in ubuntu-archive-tools a couple of new options ( and ) and better error handling (MP).Bumped the arm64 generic non-cloud image to 4.5G in livecd-rootfs and uploaded it as 26.10.16; also sponsored the follow-up 26.10.17 for Chloé.Reviewed quite a lot of MPs - britney hints, meta-release, ubuntu-release-tools, ubuntu-archive-tools, ubuntu-cdimage, livecd-rootfs, ubuntu-seeds, and so on.Did Archive Admin, DMB, and Release team duties as usual.(A quick note that I did quite a lot of the work during my work as Frontdesk that went on till 4th Oct, so 33.50 hours include the work I did till 4th October 2026.)Released Security Updates: Prototype pollution in  and  (plus a bypass of the initial fix for it), and code injection via the  option of .This is the bookworm follow-up to DLA 4663-1 that I carried over from July. The update had been sitting prepared and tested on debusine, so once the upstream discussion wrapped up, it went straight out. It also carries an extra patch to the lodash-cli dependency map - without it, the regenerated  module throws “assignWith is not defined” at runtime, which node-gulp-util’s autopkgtest caught.: Use-after-free of zlib input in  after incomplete zTXt, iTXt, or iCCP decompression, which could result in denial of service.: The same CVE-2026-46675.
-: Claimed in ; the same upstream fix applies to all three ELTS suites, so this should go out shortly. Did my front-desk week from 28-09 to 04-10.Over the week I did roughly:
-Triage of  across  and all four suites. And 1 automated ELTS end-of-life sweep.Additional data is now part of the front-desk job too, so 75 commits record it for 179 CVEs across 71 packages.Newly queued  - 13 in  (apache2, chromium, firefox-esr, libnet-idn-encode-perl, libpng1.6, node-shell-quote, nvidia-graphics-drivers, openssl, pcre2, php-mongodb, php8.2, social-auth-core, and wpa) and 16 in  (apache2, firefox-esr, gegl, lemonldap-ng, libnet-idn-encode-perl, libpng1.6, libwebsockets, nsd, nvidia-graphics-drivers, pcre2, php7.0, php7.3, php7.4, rar, unrar-nonfree, and wpa), 7 of them in both. Also widened 3 ELTS entries to bullseye - antiword, ocaml, and openvswitch.Most of the interesting work was again in the  verdicts:  (83%, across 57 packages) rest on showing that the vulnerable code or feature isn’t in the source we ship. Another 17 cover incomplete upstream fixes that we either never shipped or shipped with the follow-up already in (expat, libxml2, node-tar, and pyjwt). 15 come from bundled components we don’t ship - node-ajv again, which uses uri-js and not fast-uri, and nvidia-open, which doesn’t ship the NGX updater. And 13 are vendor- or platform-specific - openssh’s CVE-2026-55654 lives only in a Red Hat GSSAPI patch, and the netdata and PHP ones only affect Windows.Did 4 rounds of newly supported bullseye packages (33 packages overall), plus libmail-mboxparser-perl for buster - 34 in all. The existing CVE data mostly held up; the real finds were discovery gaps. One interesting gotcha: sid renamed stunnel4 to stunnel, and two new CVEs were associated only with the new name, so they never showed up for trixie, bookworm, or any ELTS suite. I also sorted the 180 “Triage needed” entries (57 packages) from elts-eol by where each was already handled, and triaged for ELTS the 100 that trixie or bookworm had already decided; the rest come next. And I imported 79 package-level lines for the older source names ELTS still ships (tomcat8, php7.0/7.3/7.4, netty-3.9, openssl1.0, python2.7/3.5/3.7, and pypy).Caught some inconsistencies in released advisories: DLA 4801-1 (swift) was missing a CVE, ELA 1831-1 (redis) listed the wrong one, and DLA 4808-1 (network-manager-l2tp) listed CVE-2026-75883 - an ID that was renamed and then reassigned to an unrelated ppp issue. I fixed all three in the tracker’s advisory lists.Made the Security team and the uploaders aware of regressions from our own updates:
-libde265: the CVE-2026-49337 fix in DLA 4789-1/ELA 1828-1 (and DSA 6413-1) misses upstream’s follow-up commit.libxml2 CVE-2026-76781 and policykit-1 CVE-2026-85498 were introduced by our own back-ports; the policykit-1 one is harmless.expat: the CVE-2025-59375 backport in DLA 4807-1 is compiled out, because  is never defined.xen: DLA 4818-1’s XSA-491 fix makes XSA-510 reachable.gegl: the CVE-2026-2049/2050 back-port in ELA 1650-1 rejects valid RLE .hdr files.log4cxx: DLA 4322-1 broke UTF-8 in JSONLayout output. That one is functional, not security.Helped correct a set of triages and let the Debian Security team know:
-ruby-json CVE-2026-71847: the vulnerable code was never in a released Debian version.openssh CVE-2026-55654: only affects a Red Hat-specific GSSAPI patch.three libxml2 issues that don’t affect trixie either.the stunnel4 rename above.trixie  lines on jsch, node-qs, and ruby-loofah, where trixie’s version doesn’t have the vulnerable feature at all.Also found some bugs in the additional-data tooling, e.g. cve-ad --package P --severity tbd wipes the CVE-level severity, and the schema doesn’t validate package-level entries at all. Monitored discussions on mailing lists, IRC, and all the documentation updates.Until next time. for today.]]></content:encoded></item><item><title>Vincent Bernat: Hacking the Go compiler to efficiently map IPv4 to IPv6</title><link>https://vincent.bernat.ch/en/blog/2026-go-netip-addrto6</link><author>Vincent Bernat</author><category>linux</category><pubDate>Sun, 4 Oct 2026 14:12:19 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[ features an 
-method returning the unwrapped IPv4 contained in an IPv4-mapped IPv6
-address: from  or , it returns
-. There is no  or  method for the reverse
-direction. Such a method is trivial to implement, but Go maintainers have
-rejected it on the grounds that users should write
-netip.AddrFrom16(ip.As16()) and let the compiler optimize it. Today,
-this pattern is eight times slower than a native method. How can we teach the
-compiler to optimize this sequence?Let’s explore three ways to implement the map semantics for . My
-favorite is to add it to the Go standard library. Go maintainers prefer a small
-external helper chaining  and , hoping
-the compiler eventually optimizes it. The  package
-opens a third path, with the same performance as the first solution.Modifying the Go standard libraryInternally,  stores any IP address as a
-128-bit value with an extra field  to encode the family and the zone: encodes an IPv4 address as an
-IPv4-mapped IPv6 address and sets  to the unique value : turns an IPv4-mapped IPv6 address into an
-IPv4 address by setting the  field to :Implementing the reverse direction inside the Go standard library is trivial: we
-set the  field to  if the address is IPv4.Instead of patching Go, we can use the  flag of  to hijack any package, including the standard library. In our case,
-it can add  to . Yet it is
-cumbersome: the flag expects a JSON file mapping absolute
-paths in  to replacement files, and you need to add it to every 
-command.We can’t access the  field from outside the  package. Instead, we
-build a small helper around the netip.AddrFrom16(ip.As16()) pattern:Another solution uses the  package to alter the  struct through
-a proxy with the same memory layout:On my computer, with Go 1.27.1, the standard library solution costs 0.88 ns per
-operation, while the solution favored by Go maintainers costs 7.14 ns. The
-unsafe solution matches the performance of the first one.goos: linux
-goarch: amd64
-pkg: github.com/vincentbernat/go-netip-addrto6
-cpu: AMD Ryzen 5 5600X 6-Core Processor
-                   │     sec/op     │
-AddrTo6/safe            7.137n ± 0%
-AddrTo6/unsafe         0.8682n ± 2%
-AddrTo6/builtin        0.8775n ± 2%
-Let’s check the assembly code the compiler generates for each solution.
-The one built into the standard library looks like this:Go’s assembly language is not a direct representation of the underlying
-machine language: it operates on a semi-abstract instruction set derived from
-Plan 9’s assembler. It has four pseudo-registers: FP (frame pointer
-for function arguments), PC (program counter), SB (static base pointer for
-global symbols), and SP (stack pointer). It also has architecture-specific
-registers like , , , , , , and  to .
-Instructions storing data use their last argument as the destination.
-Instructions can carry an explicit size suffix:  moves a byte,  16
-bits,  32 bits, and  64 bits. In the example above, the first
-instruction compares the 64-bit value  with the  register.The unsafe solution looks almost the same:The helper solution has far more instructions. To understand why, let’s look at
-the code for  and
-. They are short enough for the compiler
-to inline them.We can already guess the pattern to optimize: the code packs the IP address into
-an array, copies it, then unpacks it. If we inline the Go code by hand, we get:As humans, we can mentally derive the optimized form:Unfortunately, as of Go 1.26.8, the compiler is not smart enough to do the same:The compiler does a decent job on the byte shuffling: the eight byte stores of
- become a single , which stores a register byte-swapped.
-The eight byte loads of  become a single  the other way
-round. Three groups of instructions remain: a pack, a copy, and an
-unpack.My first idea is to replace occurrences of netip.AddrFrom16(ip.As16()) with
-netip.Addr{addr: ip.addr, z: netip.z6noz} as early as possible, during the
-“noding” process. Before that, the type checking phase prevents
-us from accessing unexported struct fields.Go 1.27 introduced a convenient debug option to dump the  of a function at
-interesting points during compilation:go1.27.1v3gobuild-a-gcflags.
-In the HTML file, the first column shows the  as it comes out of noding:In the body of the  statement, we spot the calls to the method
- and to the function . Our goal is to
-patch them with a struct literal:In noder’s , the  method builds the  tree for
-an expression. At the end of the  case, we add a call to a
- function. It takes the current node and returns the
-struct literal on success, or  if the rewrite is not possible. First, we
-check that we have the expected pattern: a call to the 
-function with a call to the  method as its only argument:Then, we fetch :And we build the struct literal:Have a look at the complete patch. We can test it
-with the following commands:src
-./make.bash
-/../bin:goversion
-gonet/netip/...
-../../go-netip-addrto6
-go.
-The generated code for the helper is now the shortest possible version!Go maintainers are unlikely to accept this change. It relies on the internal
-structure of . It’s an ugly hack in the noder, whose job is to
-faithfully translate the type-checked AST into the . And it’s harder to
-maintain than adding a  method.The right place for such an optimization is the generic  phase. One of
-the last machine-independent passes is . With the appropriate debug
-flag, the compiler dumps the  form after this pass:go1.26.8v3gobuild-a-gcflags.
-head-5AddrTo6Safe_01__memcombine.dump
-The result of the  pass follows the same structure as the assembly
-code for we looked at earlier: two stores,
-one move, and two loads we would like to optimize away.Each line features a value identifier (), an operation with its type
-(), and its arguments (). Values are the basic
-building blocks of  and are defined exactly once. Square brackets enclose
-integer parameters () and curly braces contain auxiliary arguments
-(). Operations writing to memory produce a new memory state. Every
-memory operation takes the current state as its last argument, which keeps them
-in order.Let’s focus on , aka :To simplify this code, we could apply three rewriting rules:The first one adds a shortcut when : (Load (OffPtr
-   [o] p) (Move p src mem)) => (Load (OffPtr [o] src) mem). This matches 
-   with its arguments  and  and creates a new value :The second one simplifies a : (Load p (Store p x
-   _)) => x. The load is : the stored value replaces it and no memory
-   access remains. It matches . It notices that  and  are the
-   same address and replaces  with a copy of :The last step cancels the two byte swaps: (Bswap64 (Bswap64 x)) => x.
-    becomes a copy of :If we ignore the values not needed to compute , only this  form remains:Let’s switch to , aka :To optimize it away, we also apply three rewriting rules:The first one also adds a shortcut when , but
-   without an offset: (Load p (Move p src mem)) => (Load src mem). This rewrites 
-   to use arguments from :The second rule forwards a value stored one step earlier, skipping over a
-   store to another address: (Load p (Store q _ (Store p x _))) => x. This
-   matches :  is ,  is  (),  is 
-   (), and  and  do not overlap for .The third rule : (Bswap64 (Bswap64 x)) => x.
-    becomes a copy of :If we remove the values not used to compute , we get this  form:Most of these rules already exist in . They use
-conditions to validate their context:  for the same address,
- for addresses that do not overlap. The rule forwarding a stored
-value to a load already exists with three variants looking through several other
-stores. Here are the two we need:It lacks a variant without an offset:There is no generic rule to cancel two byte swaps, but the AMD64 lowering
-pass includes this rule:After switching to Go’s development branch and adding the missing
-rule, the generated assembly code is worse than with Go 1.26.8,
-even though our additional rule slightly improves the situation at the end:The rule loading through a move, added in Go 1.27, introduced this regression.Let’s not give up now! In reality, the rewriting rules run before ,
-notably in the  pass. At this point, the inlined versions of
- and  still expand to sixteen byte stores and sixteen
-byte loads, matching their source code:Let’s follow two bytes of :  and . Here is
-a simplified  form before :The first rule loads through the move: (Load (OffPtr [o] p) (Move p src mem))
-=> (Load (OffPtr [o] src) mem). It matches both loads, which now read 
-with the memory state before the copy:The second rule shortcuts a load following a store: (Load p (Store p x _)) =>
-x. It matches , as  stores . It does not match :
- stores  four stores earlier in the chain, while the variants of
-this rule look through three stores at most.The same happens to the other bytes: the rule forwards the four bytes stored
-last,  to . The twelve other loads now read  instead of
-. becomes a chain of , each one adding a byte shifted into
-place.  is a pass written in Go, not a set of rewrite
-rules. It starts from the last  of the chain and collects up to eight
-terms. If each term is a byte load, extended to 64 bits and shifted, and if the
-eight loads read consecutive addresses from the same pointer with the same
-memory state, it replaces the whole chain with a single 64-bit load and a byte
-swap. Otherwise, it tries again with four, then two terms, and from each
-intermediate . Here is the loop checking each term in a simplified version
-of :For , the eight loads read  with the same memory state
-: merges them into one load and a swap:For , here is the chain  sees after :From , four of the eight terms are forwarded bytes, not loads from memory,
-and  can’t combine them. It doesn’t merge the four remaining loads
-either, as they sit on top of the forwarded bytes.In summary, the rewriting rules run too early to be effective. A quick
-workaround exists: run an earlier round of  before . After
-this change, the generated code for the helper is back to the
-shortest possible version:And the benchmark confirms it! ✌️goos: linux
-goarch: amd64
-pkg: github.com/vincentbernat/go-netip-addrto6
-cpu: AMD Ryzen 5 5600X 6-Core Processor
-                   │   Go 1.26.8    │             Our branch              │
-                   │     sec/op     │    sec/op     vs base               │
-AddrTo6/safe          6.5470n ±  0%   0.8944n ± 4%  -86.34% (p=0.002 n=6)
-AddrTo6/unsafe        0.9071n ±  3%   0.8682n ± 1%   -4.28% (p=0.002 n=6)
-AddrTo6/builtin       0.8871n ±  2%   0.8785n ± 1%        ~ (p=0.310 n=6)
-I think Go maintainers would reject this change because of the additional
- pass. Instead, I plan to publish this blog post and bring up the
-subject again as a follow-up to issue #54365. Either the sheer complexity and
-the Go 1.27 regression convince the maintainers that adding a  method is
-simpler and more efficient, or they advise me on how to move forward. Either
-way, digging into this subject taught me a lot about the Go compiler! ⚙️I opened issue #81994 to propose . Give it a 👍 if you want
-it in Go!]]></content:encoded></item><item><title>Vincent Bernat: Hacking the Go compiler to efficiently map IPv4 to IPv6</title><link>https://vincent.bernat.ch/en/blog/2026-go-compiler-optimization-netip</link><author>Vincent Bernat</author><category>linux</category><pubDate>Sun, 4 Oct 2026 13:27:25 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[ features an 
-method returning the unwrapped IPv4 contained in an IPv4-mapped IPv6
-address: from  or , it returns
-. There is no  or  method for the reverse
-direction. Such a method is trivial to implement, but Go maintainers have
-rejected it on the grounds that users should write
-netip.AddrFrom16(ip.As16()) and let the compiler optimize it. Today,
-this pattern is eight times slower than a native method. How can we teach the
-compiler to optimize this sequence?Let’s explore three ways to implement the map semantics for . My
-favorite is to add it to the Go standard library. Go maintainers prefer a small
-external helper chaining  and , hoping
-the compiler eventually optimizes it. The  package
-opens a third path, with the same performance as the first solution.Modifying the Go standard libraryInternally,  stores any IP address as a
-128-bit value with an extra field  to encode the family and the zone: encodes an IPv4 address as an
-IPv4-mapped IPv6 address and sets  to the unique value : turns an IPv4-mapped IPv6 address into an
-IPv4 address by setting the  field to :Implementing the reverse direction inside the Go standard library is trivial: we
-set the  field to  if the address is IPv4.We can’t access the  field from outside the  package. Instead, we
-build a small helper around the netip.AddrFrom16(ip.As16()) pattern:Another solution uses the  package to alter the  struct through
-a proxy with the same memory layout:On my computer, with Go 1.27.1, the standard library solution costs 0.88 ns per
-operation, while the solution favored by Go maintainers costs 7.14 ns. The
-unsafe solution matches the performance of the first one.goos: linux
-goarch: amd64
-pkg: github.com/vincentbernat/go-netip-addrto6
-cpu: AMD Ryzen 5 5600X 6-Core Processor
-                   │     sec/op     │
-AddrTo6/safe            7.137n ± 0%
-AddrTo6/unsafe         0.8682n ± 2%
-AddrTo6/builtin        0.8775n ± 2%
-Let’s check the assembly code the compiler generates for each solution.
-The one built into the standard library looks like this:Go’s assembly language is not a direct representation of the underlying
-machine language: it operates on a semi-abstract instruction set derived from
-Plan 9’s assembler. It has four pseudo-registers: FP (frame pointer
-for function arguments), PC (program counter), SB (static base pointer for
-global symbols), and SP (stack pointer). It also has architecture-specific
-registers like , , , , , , and  to .
-Instructions storing data use their last argument as the destination.
-Instructions can carry an explicit size suffix:  moves a byte,  16
-bits,  32 bits, and  64 bits. In the example above, the first
-instruction compares the 64-bit value  with the  register.The unsafe solution looks almost the same:The helper solution has far more instructions. To understand why, let’s look at
-the code for  and
-. They are short enough for the compiler
-to inline them.We can already guess the pattern to optimize: the code packs the IP address into
-an array, copies it, then unpacks it. If we inline the Go code by hand, we get:As humans, we can mentally derive the optimized form:Unfortunately, as of Go 1.26.8, the compiler is not smart enough to do the same:The compiler does a decent job on the byte shuffling: the eight byte stores of
- become a single , which stores a register byte-swapped.
-The eight byte loads of  become a single  the other way
-round. Three groups of instructions remain: a pack, a copy, and an
-unpack.My first idea is to replace occurrences of netip.AddrFrom16(ip.As16()) with
-netip.Addr{addr: ip.addr, z: netip.z6noz} as early as possible, during the
-“noding” process. Before that, the type checking phase prevents
-us from accessing unexported struct fields.Go 1.27 introduced a convenient debug option to dump the  of a function at
-interesting points during compilation:go1.27.1v3gobuild-a-gcflags.
-In the HTML file, the first column shows the  as it comes out of noding:In the body of the  statement, we spot the calls to the method
- and to the function . Our goal is to
-patch them with a struct literal:In noder’s , the  method builds the  tree for
-an expression. At the end of the  case, we add a call to a
- function. It takes the current node and returns the
-struct literal on success, or  if the rewrite is not possible. First, we
-check that we have the expected pattern: a call to the 
-function with a call to the  method as its only argument:Then, we fetch :And we build the struct literal:Have a look at the complete patch. We can test it
-with the following commands:src
-./make.bash
-/../bin:goversion
-gonet/netip/...
-../../go-netip-addrto6
-go.
-The generated code for the helper is now the shortest possible version!Go maintainers are unlikely to accept this change. It relies on the internal
-structure of . It’s an ugly hack in the noder, whose job is to
-faithfully translate the type-checked AST into the . And it’s harder to
-maintain than adding a  method.The right place for such an optimization is the generic  phase. One of
-the last machine-independent passes is . With the appropriate debug
-flag, the compiler dumps the  form after this pass:go1.26.8v3gobuild-a-gcflags.
-head-5AddrTo6Safe_01__memcombine.dump
-The result of the  pass follows the same structure as the assembly
-code for we looked at earlier: two stores,
-one move, and two loads we would like to optimize away.Each line features a value identifier (), an operation with its type
-(), and its arguments (). Values are the basic
-building blocks of  and are defined exactly once. Square brackets enclose
-integer parameters () and curly braces contain auxiliary arguments
-(). Operations writing to memory produce a new memory state. Every
-memory operation takes the current state as its last argument, which keeps them
-in order.Let’s focus on , aka :To simplify this code, we could apply three rewriting rules:The first one adds a shortcut when : (Load (OffPtr
-   [o] p) (Move p src mem)) => (Load (OffPtr [o] src) mem). This matches 
-   with its arguments  and  and creates a new value :The second one simplifies a : (Load p (Store p x
-   _)) => x. The load is : the stored value replaces it and no memory
-   access remains. It matches . It notices that  and  are the
-   same address and replaces  with a copy of :The last step cancels the two byte swaps: (Bswap64 (Bswap64 x)) => x.
-    becomes a copy of :If we ignore the values not needed to compute , only this  form remains:Let’s switch to , aka :To optimize it away, we also apply three rewriting rules:The first one also adds a shortcut when , but
-   without an offset: (Load p (Move p src mem)) => (Load src mem). This rewrites 
-   to use arguments from :The second rule forwards a value stored one step earlier, skipping over a
-   store to another address: (Load p (Store q _ (Store p x _))) => x. This
-   matches :  is ,  is  (),  is 
-   (), and  and  do not overlap for .The third rule : (Bswap64 (Bswap64 x)) => x.
-    becomes a copy of :If we remove the values not used to compute , we get this  form:Most of these rules already exist in . They use
-conditions to validate their context:  for the same address,
- for addresses that do not overlap. The rule forwarding a stored
-value to a load already exists with three variants looking through several other
-stores. Here are the two we need:It lacks a variant without an offset:There is no generic rule to cancel two byte swaps, but the AMD64 lowering
-pass includes this rule:After switching to Go’s development branch and adding the missing
-rule, the generated assembly code is worse than with Go 1.26.8,
-even though our additional rule slightly improves the situation at the end:The rule loading through a move, added in Go 1.27, introduced this regression.Let’s not give up now! In reality, the rewriting rules run before ,
-notably in the  pass. At this point, the inlined versions of
- and  still expand to sixteen byte stores and sixteen
-byte loads, matching their source code:Let’s follow two bytes of :  and . Here is
-a simplified  form before :The first rule loads through the move: (Load (OffPtr [o] p) (Move p src mem))
-=> (Load (OffPtr [o] src) mem). It matches both loads, which now read 
-with the memory state before the copy:The second rule shortcuts a load following a store: (Load p (Store p x _)) =>
-x. It matches , as  stores . It does not match :
- stores  four stores earlier in the chain, while the variants of
-this rule look through three stores at most.The same happens to the other bytes: the rule forwards the four bytes stored
-last,  to . The twelve other loads now read  instead of
-. becomes a chain of , each one adding a byte shifted into
-place.  is a pass written in Go, not a set of rewrite
-rules. It starts from the last  of the chain and collects up to eight
-terms. If each term is a byte load, extended to 64 bits and shifted, and if the
-eight loads read consecutive addresses from the same pointer with the same
-memory state, it replaces the whole chain with a single 64-bit load and a byte
-swap. Otherwise, it tries again with four, then two terms, and from each
-intermediate . Here is the loop checking each term in a simplified version
-of :For , the eight loads read  with the same memory state
-: merges them into one load and a swap:For , here is the chain  sees after :From , four of the eight terms are forwarded bytes, not loads from memory,
-and  can’t combine them. It doesn’t merge the four remaining loads
-either, as they sit on top of the forwarded bytes.In summary, the rewriting rules run too early to be effective. A quick
-workaround exists: run an earlier round of  before . After
-this change, the generated code for the helper is back to the
-shortest possible version:And the benchmark confirms it! ✌️goos: linux
-goarch: amd64
-pkg: github.com/vincentbernat/go-netip-addrto6
-cpu: AMD Ryzen 5 5600X 6-Core Processor
-                   │   Go 1.26.8    │             Our branch              │
-                   │     sec/op     │    sec/op     vs base               │
-AddrTo6/safe          6.5470n ±  0%   0.8944n ± 4%  -86.34% (p=0.002 n=6)
-AddrTo6/unsafe        0.9071n ±  3%   0.8682n ± 1%   -4.28% (p=0.002 n=6)
-AddrTo6/builtin       0.8871n ±  2%   0.8785n ± 1%        ~ (p=0.310 n=6)
-I think Go maintainers would reject this change because of the additional
- pass. Instead, I plan to publish this blog post and bring up the
-subject again as a follow-up to issue #54365. Either the sheer complexity and
-the Go 1.27 regression convince the maintainers that adding a  method is
-simpler and more efficient, or they advise me on how to move forward. Either
-way, digging into this subject taught me a lot about the Go compiler! ⚙️]]></content:encoded></item><item><title>Vincent Bernat: Self-hosted HTTP tunnels with SSH and nginx</title><link>https://vincent.bernat.ch/en/blog/2026-http-over-ssh</link><author>Vincent Bernat</author><category>linux</category><pubDate>Sat, 3 Oct 2026 07:23:12 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[A friend wants to proofread your work-in-progress blog post, but its preview
-only runs on . Several tools can help. Some run as a
-commercial service, like ngrok or Cloudflare Quick Tunnels. Some are
-self-hostable but require a specific client, like frp or localtunnel.
-Some only require a plain SSH client but rely on a specific SSH server, like
-sish. Let’s implement a self-hosted solution with only  and
-!ssh-R:localhost:8080http-over-ssh
-First, we forward connections from a port on a remote server to your local
-service:ssh-N-R:localhost:8080web02.luffy.cx
-When you specify  as the remote port, the server allocates a free port.
-Then, we configure nginx to proxy requests from https://p41535.ssh.luffy.cx to
-:We also need to add DNS records for  and get a wildcard
-certificate through Let’s Encrypt:The port is the only “secret” keeping the content confidential. Other
-forwarding solutions add a random string to the domain name to prevent an
-intruder from enumerating the possible values.Thanks to ngx_http_secure_link_module, we can secure
-this setup a bit. This module computes a hash over a set of values,
-including a secret, and compares it with the hash from the request. The hash is
-base64-encoded, so we cannot put it in the domain name, which is
-case-insensitive. Instead, we put it in the URL as a username, along with its
-expiration timestamp:https://6J3jK1WmB15c6WmjW_X-Wg--1789928654@p41535.ssh.luffy.cx/en/blog
-        ╰─────────┬──────────╯  ╰───┬────╯  ╰─┬─╯             ╰──┬───╯
-                hash             expires    port               path
-The client sends the username to the server with HTTP basic
-authentication. This works with most HTTP clients, including .
-Nginx exposes the username in the  variable. The module expects
-the hash and the expiration timestamp separated by a comma. We use a 
-directive to extract the two parts from  and join them with a
-comma. We also give the module the string to hash. It contains the
-expiration timestamp, the port, and a secret:The module returns the status of the check in the  variable:empty if the hashes do not match, if they match but the link has expired, orIf the hash is incorrect or missing, we return a 401 error with a
- header to ask for credentials. If the link has expired, we
-return a 410 error. We remove the  header before forwarding the
-request and add a few directives to proxy WebSocket connections.
-Here is the complete configuration:I think you are now asking yourself the obvious question: “How should I generate
-the hash?” Easy peasy!date+%sopensslmd5-binaryopensslbase64tr+/-_tr-dWell, I suppose you are now saying: “Vincent, this is not very convenient! I’ll stick
-with ngrok if you don’t mind.” Okay, I hear you. Let’s write a helper script.The main difficulty is finding the ephemeral port that OpenSSH allocates, as it
-does not appear in any environment variable. To work around this obstacle,
-we look for the ancestor  processes:-gtps-o,pid,ppid-pawk-z>Then, we get the listening ports associated with these 
-processes:sudo-nss--listening--numeric--tcp--processes--no-headergrep-Fawkawk-F:sort-un-z>Finally, we display the URLs and keep the session open:date+%sportopensslmd5-binaryopensslbase64tr+/-_tr-d
-sleepinfinity
-I install this script as  on the server and add this entry to my
-:http-over-ssh
-web02.luffy.cx
-http-over-ssh
-none
-With this solution, I only rely on OpenSSH and nginx, two pieces of software
-already running on this server. One short command gives me a self-hosted tunnel
-and a URL to share. To try it, grab the complete helper script, which
-includes a few minor improvements. If you run NixOS, as any person of taste
-would, have a look at my  instead. ❄️I have since switched to Caddy, which does not include a module to check the
-validity of a URL. Instead, Caddy queries a local HTTP service written in
-Go through the  directive. As a bonus, this lets me put
-the token in the domain name.]]></content:encoded></item></channel></rss>
+]]></content:encoded></item></channel></rss>
