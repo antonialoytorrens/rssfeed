@@ -20,10 +20,9 @@ RUN chmod 644 /etc/apt/keyrings/master.debci.antonialoytorrens.com.gpg \
 	# Repositori custom
 	sonar-scanner \
 	&& update-ca-certificates \
-	&& apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Setup usuari
-RUN useradd --create-home --shell /bin/bash builder \
+	&& apt-get clean && rm -rf /var/lib/apt/lists/* \
+	# Usuari
+	&& useradd --create-home --shell /bin/bash builder \
 	&& mkdir -p /workspace \
 	&& chown builder:builder /workspace
 
