@@ -1,4 +1,415 @@
-<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux</title><link>http://rssfeed.antonialoytorrens.com</link><description></description><item><title>John Goerzen: The Large Project Bias of CVEs</title><link>https://changelog.complete.org/archives/45097-the-large-project-bias-of-cves</link><author>John Goerzen</author><category>linux</category><pubDate>Tue, 10 Nov 2026 13:42:23 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[That turns out to be pretty difficult for a small independent project.Large projects have a way to self-assign CVE IDs.  They are their own CVE Numbering Authority (CNA).  There is a massive list of CNAs.  Just looking at the first page of results, I see everyone from Airbus to 9front (the niche Plan 9 OS).  The OpenKermit project is not a CNA.If you’re a CNA, you can create and publish CVEs on your schedule.  There is apparently no external review process.  You can wait for months, or publish immediately.If you’re not a CNA, you have to find someone that is.  The general ones that are CNAs appear to be Github and MITRE.It’s been a week and a half and no sign of a review yet.  Apparently the real review time is more than a month.The other option for projects without a CNA is via MITRE.  You have to use a strange and often broken web form, logging in with either Google or Gitlab.  (It seems to be broken on Firefox).  Then you submit your request and wait.The first CVE I obtained for C-Kermit was CVE-2025-68920.  At the time, I had not yet started the OpenKermit project.  That issue was found and fixed in the context of my work maintaining C-Kermit for Debian, and Debian is a CNA.These were discovered while wearing my “upstream C-Kermit maintainer” hat.  I’m sure I could ask Debian for CVEs again, but that seems a bit cheating; not everyone that maintains a FLOSS project will have connections with a distro like I do.There are a lot of components of a modern OS and Internet ecosystem that are small projects without a large institution behind them.This bias towards large organizations when it comes to communicating security problems benefits nobody.  It doesn’t benefit users, and only serves to discourage timely communication.  Not everyone is as persistent as I am, and when it is made so difficult to make announcements — which seem to go into a giant black hole — it’s easy to say, “why bother?”By Microsoft’s own admission, they are under-funding their CVE process on Github (which may also be poorly-designed).  They blame it on increasing load due to LLMs — a problem they helped create and predicted!  Having a fiction about being able to communicate a security issue in a reasonable time is worse than not offering the path at all.Linux was once a student’s experiment.  Let’s not pretend that quality only matters from large projects.]]></content:encoded></item><item><title>Vasudev Kamath: Experiment: Debian Cloud/VM Images using mkosi</title><link>https://copyninja.in/blog/debian-cloud-mkosi.html</link><author>copyninja</author><category>linux</category><pubDate>Tue, 10 Nov 2026 07:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Debian's Cloud Images for various
+<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux</title><link>http://rssfeed.antonialoytorrens.com</link><description></description><item><title>Junichi Uekawa: Time flies so fast.</title><link>http://www.netfort.gr.jp/~dancer/diary/daily/2026-Nov-14.html.en#2026-Nov-14-09:14:03</link><author>Junichi Uekawa</author><category>linux</category><pubDate>Sat, 14 Nov 2026 00:14:03 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[]]></content:encoded></item><item><title>Mike Gabriel: Debian Edu 13 - Call for Testing</title><link>https://sunweavers.net/blog/node/162</link><author>sunweaver</author><category>linux</category><pubDate>Fri, 13 Nov 2026 22:46:25 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The upcoming Debian 13.8 point release will be the foundation of the first release of Debian Edu 13.This is a call for testing, we are interested in your feedback.Download the Debian Edu 13.7.0 BD ISO Image (beware, ~17GiB) [1]Tweak the BD ISO image [2] and add support for packages in trixie-proposed-updates [3]Prepare an internal 'edu' network and another internal 'thinclient' networkPrepare three VMs:
+
+gateway:
+
+Attach one network adapter to the Default/NAT network of libvirtattach the other network adapter to the internal 'edu' networkInstall a Debian 13 minimal system, install the 'debian-edu-router-config' package and follow the debconf (many!) dialogs to configure the system (see [4] for additional info)tjener (Main-Server):
+
+RAM: 4-8GiB, CPU Cores 2-4 (or more)Provide 80GiB (or more) of storage (to be flexible with LTSP setups)Attach primary network adapter to the internal 'edu' networkattach the second network adapter to the internal 'thinclient' networkInstall the Main-server from your self-created debian-edu-13.7.0-amd64-BD-1-withPU.iso (see [2])Install profiles Main-Server, LTSP-Server and Workstation (menu shown in Debian (Edu) Installer)workstation:
+
+needs ~40GiB of disk storage, 4GiB RAM, 2 (or more) CPU coresboot over PXE on the internal 'edu' networkboot as Diskless Workstationinstall a Debian Edu system to diskPlease either directly submit bugs to Debian's bug tracker (package: debian-edu-config); talk to us on IRC  on  or write to the Debian Edu mailing list.]]></content:encoded></item><item><title>Reproducible Builds: Reproducible Builds in October 2026</title><link>https://reproducible-builds.org/reports/2026-10/</link><author>Reproducible Builds</author><category>linux</category><pubDate>Fri, 13 Nov 2026 21:32:53 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[In our reports, we try to outline the most important things that we have been up to over the past month. As a quick recap about what problem our project intends to solve, whilst anyone may inspect the source code of free software for malicious flaws, almost all software is distributed to end users as pre-compiled binaries. The motivation behind the reproducible builds effort is to ensure no flaws have been introduced during this compilation process by promising identical results are always generated from a given source, thus allowing multiple third parties to come to a consensus on whether a build was compromised or not.As ever, if you are interested in contributing to the project, please visit our  page on our website.In this month’s report, we cover:GNU  ‘sparse archive’ non-determinism reportedJohannes Schauer Marin Rodrigues () reported an issue to the GNU  mailing list where creating PAX-format sparse tar archives produces unreproducible outputs. Specifically, when GNU  generates a PAX archive containing a sparse file it embeds the process ID into the member filename path structure (e.g. ./GNUSparseFile.<pid>/<filename>). Because process IDs vary between build runs, however, archiving identical sparse input files yields different binary outputs.In his report, Johannes outlined potential workarounds, such as running  inside an unshared PID namespace where the process ID is pinned to , and proposed that GNU  either omit the PID by default or provide a command-line flag to suppress it. Full details can be found in the post itself, and Johannes also filed the bug in Debian for completeness.Reproducible Builds at SeaGL 2026Reproducible Builds was present at SeaGL in Seattle, WA, on October 23rd & 24th. Thanks to everyone who attended and spoke with us!Members of the Reproducible Builds project attended SeaGL (the Seattle GNU/Linux Conference) in Seattle, WA, on October 23rd & 24th. It was a fantastic opportunity to connect with local community members, discuss software supply chain security and share updates on build verification tooling. Thanks to everyone who stopped by our sessions or spoke with us during the event.Founded in 2013, SeaGL is an annual free-as-in-freedom, grassroots technical summit dedicated to spreading awareness, community engagement and practical knowledge about free software, open hardware and libre culture. is our in-depth and content-aware diff utility that can locate and diagnose reproducibility issues. This month, Chris Lamb made a number of changes, including preparing and uploading versions , ,  and  to Debian:Support the  binary being called  on the host/runtime system. […]Drop  from the  package as it is not minimal. (#1114739) […]Fix a crash when using the latest version(s) of Androguard. Thanks, hc! […]Re-order various parts of the  file comparator to make it easier to progressively delve into its functionality. […]Fix a silly “prepend” typo. […]Reflect in the Python packaging that the use of the  language feature necessarily requires Python 3.10+. […]Update . […]Update copyright years. […]In Debian this month, 20 reviews of Debian packages were added, 28 were updated and 27 were removed this month adding to our knowledge about identified issues. One issue type was updated to reflect that Debhelper ‘’ level 14 is no longer experimental. […] specification updatesBernhard’s proposed modifications were independent of one another, allowing for any combination to be merged depending on community feedback. Bernhard noted that one proposal may see the most debate, and could still benefit from further refinement before reaching consensus. Community members are invited to review and provide feedback on the individual merge requests; as Bernhard writes, “The other MRs could still use feedback from more people before December”. Input can be submitted via reactions or comments on Salsa, directly by email to Bernhard or the mailing list.The  specification was first published in 2015 and updated in 2017.The Reproducible Builds project detects, dissects and attempts to fix as many currently-unreproducible packages as possible. We endeavour to send all of our patches upstream where applicable or possible. This month, we wrote a large number of such patches, including:In addition, two build failure bugs were reported by Jochen Sprickerhof.If you are interested in contributing to the Reproducible Builds project, please visit our  page on our website. However, you can get in touch with us via:]]></content:encoded></item><item><title>Steinar H. Gunderson: Solving the fox game</title><link>http://blog.sesse.net/blog/tech/2026-11-13-19-51_solving_the_fox_game.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Fri, 13 Nov 2026 18:51:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Christoffer Stjernlöf posted about the Fox Game,
+an old Norse asymmetric board game (seemingly also called “halatafl”) where
+twenty sheep try to outsmart two foxes and get to the other side.
+His AI uncovered some interesting insights, but left the question open as of whether the 
+foxes or the sheep actually win with perfect play (the general sentiment
+in his family was that winning with the foxes was easy). This was too tempting
+for me to leave on the table, so I set out to make a strong solve.Since I don't know this game myself, I've stayed with the rules he describes
+even when they differ from e.g. Wikipedia
+(in particular, I do not use forced fox jumps, or multi-jumps); the only
+real change is that I don't have a 40-move draw rule, any position that is
+a forced win for one of the sides would be a win no matter how long it would
+take. (I consider this just an implementation detail in his AI, although
+morally, I consider a draw a loss for the sheep.) You might want to read
+his post to get the full rules, because I'm not going to repeat them here.The results first: The sheep win with perfect play, even with only 19 sheep
+(remove one on the flank), or 18 if they are allowed to go first. Even with
+only 9 sheep (the minimum possible that isn't an instant win for the foxes),
+the sheep can force a draw right from the start. With one fox, 11 sheep
+suffice for a forced win. (The draw margin is seemingly so large because
+one fox can just camp in the last spot in the pen, and it's hard to force
+it away without getting harassed by the other fox, unless you have lots of sheep.)The rest is about the implementation. I'll skip over a lot of wrong turns,
+and unsurprisingly, there were a lot of bugs to iron out, but hopefully,
+it got to a good place in the end. :-) I started out trying to make something
+very simple, and it worked for the first few cases, but then things got
+more complicated than I would have liked in the end. Still only at ~1000
+lines of code, though, with no dependencies.The board has 33 squares. I tried a few different ways of represent the state
+of the game, and ended up on a simple bitboard representation: There's a
+64-bit bitmap representing where there are sheep, and another bitmap
+representing where there are foxes. Since there's plenty of room in there,
+I use a spare bit to represent side-to-move. This is compact (which mattered
+a lot earlier on, but not as much later), easy to iterate over, and has
+little redundancy, so it's easy to keep valid. You need fast 64-bit population
+count and bit-scan instructions, but a) that's common now everywhere,
+and b) I decided fairly early that I wanted to require BMI2 anyway.The bit order mostly doesn't matter; I just started at top-left and went
+from there. All it really influences is square iteration order. There's
+a small tweak in that I store the right half of the board mirrored
+(reverse x order) for symmetry purposes; more on that below.I just typed in every possible move from every square into an array,
+then verified by generating some SVGs that I hadn't made any typos (I had).
+In retrospect, I should have done something more automated; it would have
+been less painful.The moves for sheep are just “you can go to X, Y or Z”. The moves
+for foxes are “you can go to X or Y, or you can go to Z if there's
+a sheep at W (which will be eaten)”. The move generator mostly just looks up
+the source square and tests every move. For the sheep, I make an easy
+test using bitboards; for the foxes, I could probably do something
+similar, but the jump moves proved a bit tricky (even with PEXT/PDEP)
+and I didn't end up using it.This is the part that really determines the geometry of the board
+(apart from debugging display). Everything else is pretty much geometry-agnostic.There's a little over 2^41 possible board states (this includes some
+illegal positions as well as some situations that could never arise
+during actual gameplay, such as a fox being stuck at C1 with a row
+of sheep ahead of it), and I want to remember all of them. With that
+many positions, I figured I needed a fairly compact representation.
+I needed to store that a position could be sheep win, fox win or
+a draw, and then there was a fourth “invalid” state that was useful
+for internal reasons, so that maps exactly to two bits per position.
+(A tablebase intended for distribution could be compressed to less using the usual
+tricks of entropy coding, skipping half of the positions, or similar.)This means we need to give a number to every possible position, ideally
+one with no collisions and no holes. I learned about
+combinatorial number systems
+which fit the bill exactly; given e.g. “we have 33 squares and 15 pieces”,
+it gives a dense mapping of positions from board to ID (ranking) and the
+opposite (unranking). (I made some fairly fast ranking and unranking
+algorithms, which may or may not have been novel, but it turned out
+I didn't actually need fast unranking after some other optimizations.)
+There are some extra complications in that there are two types of
+pieces, but you can solve them in a number of ways.On a macro level, I store everything with 9 sheep and 1 fox first,
+then 9 sheep and 2 foxes, 10 sheep and 1 fox, and so on. This gives
+beautiful locality (a single move can never remove more than one sheep,
+and only extremely rarely more than one fox), allowing me to just
+mmap everything and let the kernel deal with it, even though I only
+had 256GB of RAM and the total set was larger (329,870,110,455
+bytes after the symmetry optimizations below).mmap is almost never the right answer, but again, I was trying to
+go for simplicity. It certainly brought me pain, though, and perhaps
+some more explicit I/O would have been better.The board is left-right symmetric (with an odd number of columns,
+so that there is a middle column that is neither “left” nor “right”).
+I had hoped to just ignore this, but eventually the gains became
+too important to ignore, so I conceded.The basic idea is that I ranked the board twice, both as itself
+and mirrored (mirroring is just a couple of masks and shifts, given
+my representation), and picked the key that was the smaller as canonical.
+This reduced the number of positions I needed to look at to a bit
+over 50%, as expected, but it does nothing to the storage/RAM
+requirements; the new rank is not dense and the “illegal”
+(non-canonical) positions are spread out a bit all over the place
+(although of course near the low and high ends of values,
+it works much better).As a tweak, I chose to compute all 33+281 canonical fox positions
+and renumbered using those placements as an assumption. This slashes ~95% of 
+the waste, which is good enough; you can still rank a
+nonconical position if the foxes are symmetric about the center
+(or if there's only one fox and it's in the middle!), though.You can improve on this by making the macro-splitting finer;
+instead of having a chunk for e.g. “10 sheep, 2 foxes”, you
+could have one with “5 sheep in left, 0 foxes in left, 1 sheep
+center, 1 fox center, 4 sheep in right, 1 fox in right”
+and demand that there are more sheep in left than right.
+However, you still get problems when the number is balanced,
+you'd need finer splitting etc.. The gains are small enough
+that I didn't see the point in doing this, and it tends to be
+a place where it's easy to introduce bugs.I imagined calculating the exact number of positions up to symmetry
+would be an interesting exercise somehow, but I suppose it just
+immediately falls to Burnside's lemma
+as soon as you know how to count positions at all.Now that we have positions and moves and a way to store results,
+we want to know how to find the result for the starting position
+(and ideally also all other positions).My first attempt just did a depth-first search, caching as it went.
+This worked for the earlier stages but was generally a disaster; it ran out of stack
+easily (even with 8 GB—eight  of stack), and had problems
+with figuring out loops. (It didn't loop infinitely, but was prone
+to declaring loops where one side could break out of the loop by winning.
+I had a nasty hack to fix that, but it didn't really feel good.)What I did instead was propagating results one step at a time.
+For each possible position:If from a given position you know you can immediately win
+(e.g., the sheep reach the pen, or the fox eats the last
+relevant sheep), mark it as such.If you can, in one move, reach a known-won position, mark your
+position as won (for the side to move). Similarly, if you can only reach known-lost
+positions, mark your position as lost.Repeat #2 over and over again until you no longer have changes.This was simple but still inefficient; I typically needed 40–80
+passes for each chunk (where a chunk is something like “all
+positions with 15 sheep, 2 foxes”). However, it was super-easy to parallelize;
+I have 64 cores and could just hand out reasonable independent sub-chunks,
+you don't even need locking or atomic operations on the result set.The correct way of doing this is retrograde analysis (replace #2
+with doing backwards moves) and I assume this would have made the
+calculation roughly ten times as fast. But I only needed ~36 hours
+for the actual run (plus numerous pre-runs that failed for various
+reasons!), so I never got to this. After all, I wanted something
+simple to begin with.Since I only store win/draw/loss (WDL) for each position (also known as
+a “bitbase” in chess tablebases), it's not
+easy to know what the  way to win is; just that “this move
+does not mess it up, the other side still can't force a draw”.
+However, in practice, you could just do reasonable-looking moves that don't
+regress the position, and take forward moves whenever you can (i.e., do sheep
+pushes if that still wins).I made a simple alpha-beta searcher that tries to get win distances
+using the bitbase as a guide, which was a really fun challenge!
+It can find wins when they're perhaps ~20 ply (10 moves for each side)
+away, depending a bit on how narrow the win is (if there are only
+a few ways to win, it will obviously have to search a much smaller
+tree). Ultimately, though, alpha-beta for finding exact mate scores is just
+a losing game, since even perfect move ordering will only give you
+a sqrt() improvement over pure minimax.Perhaps making DTZ (distance-to-zeroing, referring to zeroing the
+draw move counter in e.g. chess) bases would be possible
+without breaking the bank on storage space; I would assume that
+usually, you can force some sort of progress pretty fast, at least
+as the sheep.I made a very rudimentary interface to the database; the UI isn't
+very nice, and it largely relies on hovering (which doesn't work all that
+well on mobile) but I didn't want a polished game-player, just to know the
+answer. :-) You can try it out at
+https://sheep.sesse.net/,
+although I don't envision keeping it up forever. Perhaps someone can
+gain new insight from it and become an expert player, although strong
+solves are rarely very insightful in themselves due to the brute-force
+nature. At least we've conclusively settled (again, under this ruleset!)
+that the sheep win with perfect play.Earlier, I would publish the source, but these days, the only ones
+who would be reading it would be the AI beast (fox?), and I'm not really
+so interested in that. :-) I'm definitely open to answering questions
+if anyone should have them; contact information at my home page as usual.]]></content:encoded></item><item><title>Amin Bandali: Building GNU Emacs from source</title><link>https://www.shemshak.org/~amin/emacs-build.html</link><author>Amin Bandali</author><category>linux</category><pubDate>Fri, 13 Nov 2026 14:09:42 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[In the recent years, I've been configuring and
+building GNU Emacs from source, specifically the
+ branch of the  repository.
+Doing so allows me to use and test latest Emacs
+features, test my Emacs Lisp code with the laest
+developments in Emacs, and easily contribute my
+own changes to Emacs.Before we start, I recommend reading the 
+file in the Emacs source repository for building
+Emacs from source tarballs, and also 
+for details about building Emacs from its source
+repository.  The information provided here were
+built upon the details documented in those files.
+When in doubt, consult those files as the main,
+authoritative source of information for how to
+build Emacs from source.Installing build dependenciesTo build GNU Emacs from its source repository, we
+first need to install the various required tools
+and build dependencies of Emacs.  On Debian-based
+systems, this can be done using .  First, we
+need to add the source packages for the current
+release of our Debian-based distribution in apt's
+configuration by adding the corresponding deb-src
+lines in an apt source list file.  For currently
+existing and older Debian releases, that would be
+done by adding a corresponding deb-src line for
+each deb line in , such as:deb http://deb.debian.org/debian/ trixie main
+deb-src http://deb.debian.org/debian/ trixie main
+In systems with recent apt versions with so-called
+modernized sources that might look editing a file
+like /etc/apt/sources.list.d/debian.sources and
+adding deb-src to the Types lines:Types: deb deb-src
+URIs: http://deb.debian.org/debian/
+Suites: trixie
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Then run  to have apt download
+package information from the configured sources.We can now run  to have
+apt download and install the build dependencies of
+Emacs.  Debian-based distributions have packages
+for a few different configurations of Emacs, like
+ with PGTK support for Wayland, and
+ for Emacs without GUI support, which
+we can use with apt build-dep to download the
+specific dependencies of those configurations.Cloning the Emacs source repositoryAfter installing Git using 
+if not already installed, we're now ready to clone
+the Emacs source repository from GNU Savannah:git clone https://https.git.savannah.gnu.org/git/emacs.git
+We can add  to make a shallow clone of
+the repository, if we don't care about having a
+complete log of previous commits to the Emacs
+repository (shallow clones are much faster).If cloning over HTTPS is slow, we can try cloning
+over Git's own protocol (with the caveat that the
+repository is cloned over an insecure channel) or
+over SSH if we have a Savannah account, using one
+of the following URLs instead of the one above:
+
+git://git.git.savannah.gnu.org/emacs.git
+ssh://git.savannah.gnu.org/srv/git/emacs.git
+Configuring the Emacs buildWe now change to the Emacs repository directory
+we just cloned, and run the  script
+once to generate the  script, which
+we will use to configure Emacs to our liking:To configure Emacs, the simplest approach is to
+run  without any additional options,
+to have it use the defaults.  We can get a list
+of available configuration options by running:As I rebuild Emacs frequently, I normally don't
+"install" it, but for a typical setup, we'll
+want to specify the installation directory using
+, e.g.:./configure --prefix=$HOME/.local
+Later,  will install Emacs under
+the specified directory.By default, some of the files (such as )
+will be compressed during installation.  We can
+prevent that using --without-compress-install.For my builds, I always use these configuration
+options:--without-gconf
+--without-gsettings
+--without-gpm
+--with-native-compilation
+As I don't use the GNOME desktop, the GConf and
+GSettings integrations are always more trouble
+than useful for me, so I disable them.  Further,
+I disable the GPM support, since I never use the
+mouse when using Emacs in the terminal.  Lastly,
+I explicitly enable native compilation support.In Wayland environments, I usually use PGTK:And in X11 environments (e.g. EXWM), I either use
+the Lucid toolkit:--with-x-toolkit=lucid --with-xaw3d
+--with-x-toolkit=no --without-xaw3d
+Later after building Emacs, we can view the
+configuration options in Emacs by inspecting
+the system-configuration-options variable.After running , we can now finally
+build Emacs by running .  The first build
+will take a while, since all of Emacs is being
+built from scratch.  Subsequent builds will
+generally be faster.We can optionally run  to install 
+Emacs into the  specified earlier, or the 
+default .  Note that this step might
+require using  if our user doesn't have
+write permission for the .After building Emacs, we run it either from 
+the install location if we ran 
+earlier, or directly from the source repository.
+Currently, Emacs's build system makes a symlink
+to the latest built binary in the repository at
+, and for  and other
+auxiliary binaries under the  directory.When skipping , we might still want
+to be able to easily launch Emacs from anywhere
+by typing .  We can do that by making
+symlinks to  and its auxiliary binaries
+inside a directory in our , such as
+, like so:cd $HOME/.local/bin
+ln -s $HOME/src/emacs/src/emacs .
+for e in \
+ ebrowse emacsclient etags make-docfile\
+ make-fingerprint hexl rcs2log; do\
+  ln -s $HOME/src/emacs/lib-src/$e .; done
+For non-install setups like this, I augment
+ in my init file with
+the location of the info manuals in the
+repository to make them known to Emacs:(defvar Info-directory-list) 
+(with-eval-after-load 'info 
+  (setq 
+   Info-directory-list
+   `(,@Info-directory-list
+     ,(expand-file-name
+       (convert-standard-filename "info/")
+       source-directory)
+     "/usr/share/info/"))) 
+We can pull in the latest changes in the Emacs
+repository using , then rebuild our
+Emacs by running .Occasionally, rebuilds may fail due to bad
+interaction of changes with leftover build
+artifacts.  In such cases, the easiest thing
+to do would be a  for an
+almost-from-scratch build.  On even rarer
+occasions,  might also fail.
+We would then want to run  to
+remove every file that's not tracked by Git,
+as if we freshly cloned the repository.
+In such cases, we would need to configure the
+build again using  and provide the
+desired options before running  again.Protesilaos's similar post from early 2025 was
+part of the inspiration for writing and sharing
+my version:https://protesilaos.com/codelog/2025-03-22-emacs-build-source-debian/Lastly, to reiterate, Emacs's own  and
+ files for building from source:Take care, and so long for now.]]></content:encoded></item><item><title>Bits from Debian: New Debian Developers and Maintainers (September and October 2026)</title><link>https://bits.debian.org/2026/11/new-developers-2026-11.html</link><author>Jean-Pierre Giraud</author><category>linux</category><pubDate>Fri, 13 Nov 2026 10:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The following contributors got their Debian Developer accounts in the last two
+months:Matheus Polkorny (polkorny)Michael Stehmann (oldmike)Alper Nebi Yasak (alpernebbi)Nicolas Schodet (nschodet)The following contributors were added as Debian Maintainers in the last two
+months:]]></content:encoded></item><item><title>Reproducible Builds (diffoscope): diffoscope 339 released</title><link>https://diffoscope.org/news/diffoscope-339-released/</link><author>Reproducible Builds (diffoscope)</author><category>linux</category><pubDate>Fri, 13 Nov 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The diffoscope maintainers are pleased to announce the release of diffoscope
+version . This version includes the following changes:[ Jay Burstin ]
+* Rework including .zip-related differences for .odt files.
+
+[ Chris Lamb ]
+* Add some comments to recent OdtFile changes.
+* Update copyright years.
+]]></content:encoded></item><item><title>Freexian Collaborators: Debian Contributions: Python 3.15 transition, OpenSSH GSS-API package split improvements and more! (by Anupa Ann Joseph)</title><link>https://www.freexian.com/blog/debian-contributions-10-2026/</link><author>Anupa Ann Joseph</author><category>linux</category><pubDate>Fri, 13 Nov 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Python 3.15 transition, by Stefano Rivera with a little help from Colin WatsonDebian has started the transition to add Python 3.15 as a supported version
+alongside 3.14, which is still the default version. Stefano uploaded Python
+3.15.0 final to unstable.Maximiliano Curia has been test-rebuilding the archive
+in Debusine with Python 3.15 as a supported version and prepared some patches
+to dh-python to smooth over some common failure points. Stefano reviewed these
+MRs, applying some and implementing alternative approaches for some of the issues.Debian only has multiple supported Python versions during the transition to a
+new version, and typically this shows up some bugs in packages. This time was
+no different, the common failure was many packages that installed intermediate
+build artifacts into the Python module tree. Some of these artifacts would
+differ between Python versions. We decided to detect both of these and fail the
+package build, rather than silently ship garbage in the binary packages. Colin
+helped to fix quite a bit of the build fallout from this.OpenSSH GSS-API package split improvements, by Colin WatsonThe recent GSS-API package split
+has largely gone relatively smoothly, but there was a subtle problem for people
+switching from one variant to the other: installing the replacement packages
+followed by purging the old one would
+cause some configuration files to disappear.
+Colin fixed this, and also reviewed and merged some autopkgtest contributions
+from Andreas Hasenack to make sure that this doesn’t regress in future.Miscellaneous contributionsCarles, using check-relations,
+investigated and reported 52 bugs for packages which have Recommended packages
+that are not available in Debian anymore. Followed up bugs on the topic.Carles added support to check-relations
+to detect Recommends that recommend a transitional package.Carles submitted merge requests
+(MR89,
+MR90,
+MR91,
+MR92)
+to the Debian developers-reference
+to remove or update references to packages that are not available anymore, have
+their name changed, have typos, etc.Carles investigated and opened bugs regarding notifications on LXDE
+(#1151954,
+#1151955)
+and added a section related to notifications on the
+Wiki.Helmut released asyncvarlink/0.3.3
+to fix several bugs including connection robustness fixes by Alex Kiernan. Colin
+uploaded it to Debian.Helmut uploaded guess-concurrency
+to improve behavior on riscv64 by taking swap into account thanks to Adrian Bunk
+and Aurelien Jarno.Helmut sent patches for 55 cross build failures.Emilio updated some X11 libraries that fixed security vulnerabilities.Emilio managed various transitions.Raphaël updated gnome-shell-extension-hamster to work with GNOME 51 that was
+uploaded to Debian unstable.Stefano backported postsrsd 2.4.1 to
+Debian trixie.Stefano installed security updates on debian.social infrastructure.October saw a series of security releases for Python, due to the eMudhra key
+compromise incident. Stefano uploaded cPython 3.15.2, 3.14.10, and 3.13.18 which
+include blocks for the compromised intermediate CAs.Stefano reviewed CVEs fixed in recent cPython releases.Stefano uploaded PyPy3 8.0.1 to unstable.Stefano reviewed some of the wafer-debconf MRs that came in as part of
+Antonio’s Outreachy project.Stefano uploaded python-authlib, with  security updates. And started
+preparing a stable update with backports of these patches.Stefano looked at the latest upstream version of munkres and submitted some
+32-bit test failure fixes upstream. A new upstream maintainer has been very busy
+building out accelerated versions of the algorithms with AI assistance.Thorsten was finally able to fix the autopkgtest of cups. Afterwards he
+uploaded the latest version of cups to unstable.Santiago proposed a merge request
+for the Salsa CI pipeline to fix how logs were stored in the piuparts job.Lucas reviewed and merged community contributions to Ruby 3.4 in Debian unstable.Lucas coordinated with the security team and fixed multiple CVEs reported
+against Ruby 3.3 in Debian stable.Colin did quite a bit of work on the Python 3.15 transition, fixing lots of
+build and test fallout.Colin upgraded python-maturin from 1.9.4 to 1.16.0, helping with several Rust
+transitions; this involved more or less completely reworking our patch stack.Colin improved the packaging of the Frescobaldi
+frontend to LilyPond to help with his amateur music
+typesetting work, fixing its missing desktop entry, icon, and translations based
+on a patch set by Joachim Wiedorn.Anupa joined the Publicity team meeting to discuss upcoming events and
+activities of the Debian Publicity Team including on-boarding meeting for new
+contributors.Antonio spent quite some time welcoming Outreachy
+applicants to the DebConf/MiniDebConf websites project, replying to questions,
+reviewing contributions, etc. One of them will be selected for an internship
+that will start in December.Antonio spent some time investigating problems with Salsa background job
+processing, leading to an upstream bug report.]]></content:encoded></item><item><title>Colin Watson: Free software activity in October 2026</title><link>https://www.chiark.greenend.org.uk/~cjwatson/blog/activity-2026-10.html</link><author>Colin Watson</author><category>linux</category><pubDate>Wed, 11 Nov 2026 10:01:03 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[My Debian contributions this month were all sponsored by Freexian.Other build/test failures:Since lots of Python modules use Rust extensions nowadays, we often have to help with upgrades of Rust packages.  I did some of this:One of my hobbies is typesetting (“engraving”) music, sometimes for my own use, sometimes for teaching, and sometimes for my choir.  I’ve used LilyPond for a long time and have got pretty used to it.  My workflow was a bit cumbersome, though, usually involving side-by-side editor and  viewer windows with some ad-hoc Makefiles and editor macros.  I recently discovered the Frescobaldi frontend to LilyPond, and decided I liked it enough to switch over to it.  It was already packaged in Debian, but it had a missing desktop entry and icon and missing translations; I fixed those based on a patch set by Joachim Wiedorn.  My upload introduced a testing migration problem, which I also fixed.I upgraded rust-jiter and rust-smallvec to new upstream versions for a new version of pydantic-core.  The rust-smallvec upgrade caused an  in rust-saphyr-parser-bw, which I fixed.I improved the  tool used by the Rust team to check build-depends too, which should make it easier for that team to remember Python packages in transitions.]]></content:encoded></item><item><title>Russell Coker: Thinkpad T14</title><link>https://etbe.coker.com.au/2026/11/11/thinkpad-t14/</link><author>etbe</author><category>linux</category><pubDate>Wed, 11 Nov 2026 04:25:02 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[It has been working reasonably well for me, but my vision is diminishing so my current setup with the Kitty terminal emulator allows 4 terminals of 153/154 columns and 40/41 rows or 9 terminals of about 101*27. To have this much text I use the minimum font size I can see which is unreadable when I first wake up – which is bad for the “woken by network management system alert” situations. Also 16G of RAM is a bit of a limit, the Thinkpad X1 Carbon has 4G of swap space and it’s all used most of the time. While there’s usually plenty of buffer/cache RAM it does sometimes get to an OOM situation.Another issue is that the battery is approaching it’s end of life. The “” command reports the following which might imply that the battery should last more than 80% of the time when it was new, but testing shows that the time I can use it on battery is not much more than half what it was when I bought the laptop, maybe 1/3 of the battery life when new. I used to be able to consistently run the machine on battery for 7+ hours and still have plenty of charge left, now I can’t even get 5 hours.energy-full:         50.35 Wh
+energy-full-design:  57.02 WhI could buy a new battery for about $70, but there are plenty of things I can do with that laptop for which 1/3 the designed battery life is more than enough. Also I have a couple of USB-C batteries that are capable of supplying 30W+ to power a Thinkpad X1 Carbon but they are inconvenient and I’d rather have external batteries and an internal battery that will last most of a day.Below is a table summarising most of the Thinkpads I’ve owned. I really like the Trackpoint on Thinkpads and have not considered buying a laptop without one. I skipped two laptops I bought in the 2000-2002 time period, that was an expensive laptop time for me. Fortunately by 2000 ebay was getting useful so I only ever had to buy one brand new Thinkpad.weight screen resolution CPU and RAMoverheating and screen backlightoverheating battery-life and PSUlid hinge broken and generally olderror on proprietary SSD lack of USB-C and screen resolutionscreen resolution and wanted a 2in1RAM and screen resolutionSo I’ve spent $2675.70 on Thinkpads that I used from 2010 until now (not counting the one I just bought), so that’s $160 per annum for the past 16 years and 9 months.When I convert that to 2025/2026 dollars that’s $3,221 for 16 years 9 months or $198 per annum. So I just need to make this T14 last for 2 years to be spending less than usual.Some Generic Laptop AdviceA while ago I was asked for advice on buying a laptop for an architect to use. I can give good advice for laptops used by programmers and for home use and students but I really don’t know what an architect does and even a description wouldn’t do it justice.The advice I gave was to buy or borrow a relatively low end laptop, something that costs $400 new or $300 second hand and give it a go. Using it will reveal that it doesn’t do what is desired in some ways, whether it’s screen resolution, RAM, CPU power, storage capacity, physical size/weight, or some combination of them is something you won’t know until you try it. Then after having used a cheap laptop they could buy a laptop for $1500+ (for serious work use by people outside the IT industry buying a new laptop is recommended) knowing what features they really need.So I have gone through a similar process of buying different laptops and discovering the benefits which has arrived at the T14.I saw a Thinkpad T14 with 4K display and 16G of RAM on Facebook Marketplace advertised for $400 and they ended up selling it to me for $300 without the SSD and without the PSU. The seller has a business of selling used enterprise gear so he was happy to keep the SSD and PSU for sale with other laptops. I don’t have a need for more laptop PSUs as I have most of the laptops in my fleet charged from 200W+ PSUs that charge multiple devices and I also have a collection of spare SSDs.$300 for a laptop with 4K display is a good deal. The T14 is significantly better than the T14s because it has one SODIMM socket while the T14s has soldered RAM, so I could expand the RAM to 48G at some future time – but with current prices I bought an 8G SODIMM for $40 so 24G will have to do for now. That gives a total of $340 plus the value of a SSD.My first tests with the 4K display I set the display scaling to 150% (previously I had 100% which was a little small for some parts of the display). For my current favourite terminal emulator Kitty I had the Terminus font set to 10.5 point and now have it set to 9.0 point. This set of changes took the amount of text displayed in terminals from about 300*80 to about 330*100 while also increasing readability. This is a very significant improvement. If I knew that 4K in a 14″ display would be so good I’d have got it years ago!The i7-10610U in my new Thinkpad scores only about 10% faster on Passmark than the i7-8550U in my previous one. That’s disappointing given that Intel had another 3 years of research to develop it and it’s running with faster RAM. The two CPUs have the same TDP so it’s just a 10% performance gain over 3 years and no change anywhere else. If the new CPU had a lower TDP then the small performance increase would be understandable.When I first booted the system Chrome graphics were corrupted and system performance was bad, after installing the packages  and  to deal with the kernel errors about not finding firmware the graphics display was correct and the system ran a lot faster. I had forgotten about the issues related to having NVidia and Intel GPUs on the same system that I had dealt with in previous T series Thinkpads.In the systemd-boot loader.conf file I added “console-mode 0” to prevent the font being ridiculously small for the boot selection.The battery life seems like it might be a bit less than my previous laptop was when I got it, but it’s definitely better than the previous laptop gives now.The screen is very shiny, I prefer the screens with matt finish to avoid seeing reflections. The “anti glare” screens for the T14 are for FullHD and worse while the “glossy” screen is the only option for 4K.. Maybe I should investigate one of those hoodie jackets with a hood that’s large enough to cover the screen, they are being sold as a privacy feature but can also be used to avoid reflection. As an aside if you are in an environment with hostile parties then you really shouldn’t block your vision of them.A problem I previously had with T series Thinkpads which contributed to the replacement of two of them is the screen hinges breaking. This laptop is significantly heavier and more solidly built than the X1 series I’ve been using and opening and closing the screen takes a lot more force. I am now wondering if I’ll be looking for a “for parts” condition Thinkpad on ebay in the future. It seems that cracking the screen is a much more common failure case than breaking the hinges so hopefully there will be spares available. But as my previous T series thinkpads lasted 7, 3, and 4 years this one could be expected to last until 2030 and maybe by then giving it to someone in Vietnam and buying a replacement would be the easiest option.I thought that going from 2560*1440 to 3840*2160 I would be hitting the diminishing returns range but it seems that there are still further gains to be found in screen resolution for my use, maybe the Apple people with their “Retina” displays are on to something. There are Thinkpad X1 Carbon models with 3840*2400 displays, so maybe that’s something to move on to in a few years. The minimum model with 3840*2400 is the X1 Carbon Gen 9 and there’s the X1 Yoga Gen 6 with an OLED 3840*2400. There’s also the P series which has 16″ 3840*2400 displays which would allow more usable text with the caveat of being much less portable.It sucks that no-one seems to be making a laptop with more than 3840*2400 resolution. 5120*2160 desktop monitors are common and affordable nowadays. I’m sure that even now I could use more than 3840*2400 in a 14″ laptop and when I was younger I could have benefited from more than 3840*2400 in an 11″ laptop if such hardware had been available.]]></content:encoded></item><item><title>Louis-Philippe Véronneau: A good-looking Corsi-Rosenthal Box</title><link>https://veronneau.org/a-good-looking-corsi-rosenthal-box.html</link><author>Louis-Philippe Véronneau</author><category>linux</category><pubDate>Tue, 10 Nov 2026 21:00:15 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Ever since I built an AirGradient boardback in 2023, I
+have been more and more conscientious about air quality. Pretty instantly after
+installing the board in my living room, I realised common habits like cooking
+can significantly increase the particulate levels in my entire apartment.Here is a good example of a pretty large (and long-lasting) PM
+spike on September 23 after cooking a meal:Isn't this crazy? Last time Montreal had such bad outdoor air quality, there
+were public broadcasts telling people not to go outside and to wear N95 face
+masks if we absolutely needed to. Inside my apartment though, no one ever told
+me cooking veggies in a little oil on medium-low could make the air I
+breathe unsafe.This of course is aggravated by the fact my apartment is pretty much as airtight
+as it can reasonably be, since winters here are very cold and air infiltrations
+are a major heat loss source. As such "opening my windows when I cook" is not a
+viable solution to this problem half of the year.I first tried solving this issue by tuning my HVAC system. Sadly, its controls
+don't offer much flexibility, which means it is not the right tool to
+respond to short-lived spikes like these. Not only this, but the quality of the
+air outside is not always good either: Canada now has a forest fire season
+(we're all doomed) and my neighbors regularly smoke cigarettes right under my
+HVAC air intake.Clearly, the solution to this particular issue was to buy an air purifier. Or
+at least, that's what a "normal" people would have done. Sadly, these units are
+expensive, use (expensive) proprietary filters, don't work very
+well and can be loud.One of the great inventions of the COVID-19 pandemic is the Corsi-Rosenthal
+box. Popularised in 2020 by Richard Corsi and Jim Rosenthal, the idea
+is to make a DIY air purifier by using a large fan to force air through cheap
+and readily available MERV13 air filters.The main downsides of regular CR boxes is they are pretty ugly, can be loud
+depending on the fan used and need to be rebuilt when the filters are changed
+(they are held using tape).That's when I stumbled on this amazing design for a silent and
+sleek CR box sold by The 3D Handyman. Clearly, with a bit of
+tinkering and a 3D printer, I could also design something sleek, silent and
+efficient!Since I was already using MERV13 air filters in my HVAC, I decided to design
+around 4 vertical "beams" where the filters would slot in. With tight enough
+tolerances, I figured I could get rid of the complex moving parts in The 3D
+Handyman's design. I also added M5 threads to screw the top and bottom panels
+and the TPU feet to elevate the box from the floor.The final result looks like this. I used some foamcore boards I had laying
+around at work for the top and bottom panels, but any somewhat rigid plastic
+panels (like coroplast) would also work: out' position" alt="The whole CR box assembled, with the fan in the 'in -> out' position">I ended up having to split the "beams" in two and joining them with dowels, as
+even the largest 3D printers I had access to couldn't print them in one piece.Here's the cost breakdown for this project (shipping and taxes are included):The fan is . It is by far the best fan I have ever owned. Not
+  only it is all metal and very quiet, but it is also PWM-controlled via a
+  USB-C controller, which means the speed it runs at can be automated.
+  I have been using it constantly and take it out of the CR box during the summer
+  to be used as a "regular" fan. I like it so much so I am seriously
+  considering buying the 14 inch model.The 3D printed parts are plastic and they will last me a lifetime.As mentioned before, the filters are the same I use in HVAC, which means I can
+  buy them in packs of 12 to reduce costs.All in all, I'm very happy with this project. Since finishing it, I have been
+able to consistently get the PM levels in my apartment down to
+zero and significantly reduce the time it takes to recover from a spike caused
+by cooking food.I certainly could have cut the cost of this project in half by choosing a
+cheaper fan, like the box fans used in the reference Corsi-Rosenthal
+instructions, but I decided to spend more for a more quiet and reliable option.Here are the STLs I used for this project. I certainly don't recommend just
+printing them as-is, since I am using the 12" x 12⅞" x ¾" custom air
+filters from my HVAC and you should probably use something more standard.If you use these files as inspiration, your goal should be to make a box that
+is 16" wide, to fit the AC Infinity fan comfortably. I printed the "beams" in
+PETG at 100% infill and the feet in TPU 95:The next step in this project is to automate the fan speed based on the
+PM levels in my apartment. At the moment, I manage this manually
+and it is becoming a chore.This should be relatively easy to do with a Raspberry Pi Pico board, since AC
+Infinity sells a USB-C to Molex adapter for the fan.]]></content:encoded></item><item><title>John Goerzen: The Large Project Bias of CVEs</title><link>https://changelog.complete.org/archives/45097-the-large-project-bias-of-cves</link><author>John Goerzen</author><category>linux</category><pubDate>Tue, 10 Nov 2026 13:42:23 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[That turns out to be pretty difficult for a small independent project.Large projects have a way to self-assign CVE IDs.  They are their own CVE Numbering Authority (CNA).  There is a massive list of CNAs.  Just looking at the first page of results, I see everyone from Airbus to 9front (the niche Plan 9 OS).  The OpenKermit project is not a CNA.If you’re a CNA, you can create and publish CVEs on your schedule.  There is apparently no external review process.  You can wait for months, or publish immediately.If you’re not a CNA, you have to find someone that is.  The general ones that are CNAs appear to be Github and MITRE.It’s been a week and a half and no sign of a review yet.  Apparently the real review time is more than a month.The other option for projects without a CNA is via MITRE.  You have to use a strange and often broken web form, logging in with either Google or Gitlab.  (It seems to be broken on Firefox).  Then you submit your request and wait.The first CVE I obtained for C-Kermit was CVE-2025-68920.  At the time, I had not yet started the OpenKermit project.  That issue was found and fixed in the context of my work maintaining C-Kermit for Debian, and Debian is a CNA.These were discovered while wearing my “upstream C-Kermit maintainer” hat.  I’m sure I could ask Debian for CVEs again, but that seems a bit cheating; not everyone that maintains a FLOSS project will have connections with a distro like I do.There are a lot of components of a modern OS and Internet ecosystem that are small projects without a large institution behind them.This bias towards large organizations when it comes to communicating security problems benefits nobody.  It doesn’t benefit users, and only serves to discourage timely communication.  Not everyone is as persistent as I am, and when it is made so difficult to make announcements — which seem to go into a giant black hole — it’s easy to say, “why bother?”By Microsoft’s own admission, they are under-funding their CVE process on Github (which may also be poorly-designed).  They blame it on increasing load due to LLMs — a problem they helped create and predicted!  Having a fiction about being able to communicate a security issue in a reasonable time is worse than not offering the path at all.Linux was once a student’s experiment.  Let’s not pretend that quality only matters from large projects.]]></content:encoded></item><item><title>Vasudev Kamath: Experiment: Debian Cloud/VM Images using mkosi</title><link>https://copyninja.in/blog/debian-cloud-mkosi.html</link><author>copyninja</author><category>linux</category><pubDate>Tue, 10 Nov 2026 07:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Debian's Cloud Images for various
 public cloud platforms and VM environments are built using a tool called
 debian-cloud-images,
 an in-house utility developed and maintained by the .The  tooling uses FAI (Fully Automatic Installation) to create
@@ -52,7 +463,8 @@ with the  yet. For now, this will continue as my pet project. While
 I won't be hosting pre-built binary images, anyone interested is welcome to clone the
 repository and build the images locally.I will probably take some more time before tackling dm-verity images, as I want to
 understand the nuances thoroughly before experimenting with them. Until then, happy
-hacking! Please report any issues or suggestions on GitHub.]]></content:encoded></item><item><title>Amin Bandali: EmacsConf 2026 community panel - my comments</title><link>https://www.shemshak.org/~amin/emacsconf-2026-community-panel-comments.html</link><author>Amin Bandali</author><category>linux</category><pubDate>Mon, 9 Nov 2026 21:57:44 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[This is a recollection of my comments from the
+hacking! Please report any issues or suggestions on GitHub.]]></content:encoded></item><item><title>Utkarsh Gupta: FOSS Activities in October 2026</title><link>https://utkarsh2102.org/posts/foss-in-oct-26/</link><author>Utkarsh Gupta</author><category>linux</category><pubDate>Tue, 10 Nov 2026 05:41:11 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Here’s my monthly but brief update about the activities I’ve done in the FOSS world.Whilst I didn’t have much time, here are still a few things that I worked on:Sponsored ubuntu-dev-tools/0.215 for Florent ‘Skia’ Jacquet, so that  no longer crashes when distro-info-data is outdated.Assisted a few folks in getting their patches submitted via Salsa.Moderation of -project mailing list.Sponsored libp11/0.4.12-1.1ubuntu2 for Guruprasad, an SRU to Noble which drops the workaround from the previous SRU that broke EAP-TLS Wi-Fi with TPM-backed PKCS#11 keys (LP: #2163152).Proposed a fix for net-tools’ FTBFS in stonking - Linux 7.1 removed the amateur radio subsystem along with , so ROSE support has to go: (MP).Reviewed quite a lot of MPs and PRs - britney hints, ubuntu-cdimage, livecd-rootfs, ubuntu-seeds, ubuntu-dev-tools, a bunch of 26.10 release notes, and so on.Did Archive Admin, DMB, and Release team duties as usual.: Use-after-free of zlib input in  after incomplete zTXt, iTXt, or iCCP decompression (CVE-2026-46675).
+: The patch is ready but couldn’t finish testing this month. The upstream fix that went into bookworm via  applies to all three ELTS suites as-is. Will roll out the fix in November. Monitored discussions on mailing lists, IRC, and all the documentation updates. Couldn’t make it to the monthly LTS meeting live, but left my thoughts in the meeting notes on Beuc’s proposal of offering help to the Release team with reviewing security SPUs - +1 for trying, as long as the Release team is on board with it and we don’t end up doing the same work twice.Until next time. for today.]]></content:encoded></item><item><title>Amin Bandali: EmacsConf 2026 community panel - my comments</title><link>https://www.shemshak.org/~amin/emacsconf-2026-community-panel-comments.html</link><author>Amin Bandali</author><category>linux</category><pubDate>Mon, 9 Nov 2026 21:57:44 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[This is a recollection of my comments from the
 EmacsConf 2026 community panel recording session
 this past weekend, where the panellists took turns
 answering the proposed questions, one minute per
@@ -314,7 +726,7 @@ services in a verrrrrry-dark web search site?First time I have to throw this sti
 version . This version includes the following changes:[ Chris Lamb ]
 * Mark that the test_nupkg_compressed_files test requires the tlsh Python
 * module. (Closes: #1151752)
-]]></content:encoded></item><item><title>Juan Manuel Méndez Rey: Hello, Planet Debian</title><link>https://vejeta.com/en/blog/hello-planet-debian/</link><author>Juan Manuel Méndez Rey</author><category>linux</category><pubDate>Wed, 4 Nov 2026 19:30:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Hello, Planet Debian. My blog was added to the Planet today, so I think the polite thing is to introduce myself before you start finding my posts between yours.I am Juan Manuel Méndez Rey, from Sevilla. In Debian I am mendezr, and on OFTC I am Vejeta. I have been using Linux since 1994 and Debian since 1998. For a long time that was all: a happy user, installing, breaking things, reading the mailing lists from the outside. I started contributing in October 2025, and last month I became a Debian Maintainer.The way in was a friend. Back in 2019 Arturo Borrero Gonzalez filed RFP #943703 for Stremio, and for years he kept telling me I should pick it up. In September 2025 I finally listened and turned it into an ITP. It took longer than I like to admit, but Stremio is now in Debian, and I told that story here. A six year old RFP turned out to be a very good first package.Somewhere along the way I discovered that what I enjoy most is bringing old software back.The first one came from tille, who asked for help in #debian-tinytasks with xwpe, a Borland style programming editor for the terminal that nobody was looking after. I adopted it, and then I ended up as its upstream maintainer too. I fixed the old bugs and added LSP and DAP, so now an editor from 1993 can debug Go. It ships on several distributions, in Homebrew and on the BSDs. The canonical repo is on Codeberg, and the long version is in this post.The second one is older and took much longer. Conquer is a Unix strategy game written by Ed Barlow and Adam Bryant in 1987, and I lost many hours of my youth to it. It never had a free licence. I first asked about it on debian-legal in October 2006, and I spent the next 20 years tracking down the authors, one email at a time. Today Conquer v4 and V5 are GPL-3.0. It is not packaged in Debian yet, that is the next step, but you can already play it in the browser.CEF took me six months and brought me into the Chromium team, and these days I am mostly with the syft, trivy and grype security stack and with Scala 3 and sbt for Debian.To Arturo, for the nudge. To dilinger, tille and tsimonq2, my DM advocates, for trusting me.And if you can sponsor uploads for syft, trivy, grype or the Scala work, I would be very grateful. The details are on my wiki page.]]></content:encoded></item><item><title>Louis-Philippe Véronneau: Tenure</title><link>https://veronneau.org/tenure.html</link><author>Louis-Philippe Véronneau</author><category>linux</category><pubDate>Tue, 3 Nov 2026 18:00:16 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Last week, I received confirmation from my college's human resources department
+]]></content:encoded></item><item><title>Juan Manuel Méndez Rey: Hello, Planet Debian</title><link>https://vejeta.com/en/blog/hello-planet-debian/</link><author>Juan Manuel Méndez Rey</author><category>linux</category><pubDate>Wed, 4 Nov 2026 19:30:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Hello, Planet Debian. My blog was added to the Planet today, so I think the polite thing is to introduce myself before you start finding my posts between yours.I am Juan Manuel Méndez Rey, from Sevilla. In Debian I am mendezr, and on OFTC I am Vejeta. I have been using Linux since 1994 and Debian since 1998. For a long time that was all: a happy user, installing, breaking things, reading the mailing lists from the outside. I started contributing in October 2025, and last month I became a Debian Maintainer.The way in was a friend. Back in 2019 Arturo Borrero Gonzalez filed RFP #943703 for Stremio, and for years he kept telling me I should pick it up. In September 2025 I finally listened and turned it into an ITP. It took longer than I like to admit, but Stremio is now in Debian, and I told that story here. A six year old RFP turned out to be a very good first package.Somewhere along the way I discovered that what I enjoy most is bringing old software back.The first one came from tille, who asked for help in #debian-tinytasks with xwpe, a Borland style programming editor for the terminal that nobody was looking after. I adopted it, and then I ended up as its upstream maintainer too. I fixed the old bugs and added LSP and DAP, so now an editor from 1993 can debug Go. It ships on several distributions, in Homebrew and on the BSDs. The canonical repo is on Codeberg, and the long version is in this post.The second one is older and took much longer. Conquer is a Unix strategy game written by Ed Barlow and Adam Bryant in 1987, and I lost many hours of my youth to it. It never had a free licence. I first asked about it on debian-legal in October 2006, and I spent the next 20 years tracking down the authors, one email at a time. Today Conquer v4 and V5 are GPL-3.0. It is not packaged in Debian yet, that is the next step, but you can already play it in the browser.CEF took me six months and brought me into the Chromium team, and these days I am mostly with the syft, trivy and grype security stack and with Scala 3 and sbt for Debian.To Arturo, for the nudge. To dilinger, tille and tsimonq2, my DM advocates, for trusting me.And if you can sponsor uploads for syft, trivy, grype or the Scala work, I would be very grateful. The details are on my wiki page.]]></content:encoded></item><item><title>Louis-Philippe Véronneau: Tenure</title><link>https://veronneau.org/tenure.html</link><author>Louis-Philippe Véronneau</author><category>linux</category><pubDate>Wed, 4 Nov 2026 05:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Last week, I received confirmation from my college's human resources department
 I was awarded tenure. If you ever worked in the academic world, you know how
 big of a deal this is.In our fast moving and ever-increasingly unstable world, it is a pretty strange
 feeling to know you have a stable, well-paying job for the rest of your career.
@@ -635,7 +1047,7 @@ To run it, you can set up the wrapper script to run with a higher priority in
 , but you need to edit  to remove the first
 branch of the  that, frustratingly, tries to run it as .I'm looking forward to a time where it becomes stadard practice to manage user
 commands this way: why should a desktop solitaire game have access to ?
-Or network? Why is it still normal, in 2026, to run a Desktop system like that?]]></content:encoded></item><item><title>Russell Coker: CEO Impersonation Fraud</title><link>https://etbe.coker.com.au/2026/10/26/ceo-impersonation/</link><author>etbe</author><category>linux</category><pubDate>Mon, 26 Oct 2026 04:09:59 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[CEO fraud (or more generally executive fraud) is a subset of Business Email Compromise fraud which allegedly loses Australian businesses $84M/year [3]. The numbers vary a lot depending on what is counted, is it just attacks where money is lost or do situations where the bank reverses the transaction count? There’s a lot of secrecy around this because of reputation issues related to fraud, a company that gets defrauded might be regarded as an unreliable business partner. Also in terms of interpreting results there are organisations that want to promote the idea that “it’s a major crime that could cost you everything unless you pay us to improve your security”.My experience of these things is that at one company I worked for someone had gained access to an executive mailbox and setup rules to move mail from certain senders to a mailbox that wouldn’t be checked (maybe .Sent or .Spam or something – I can’t remember the details) as well as forwarding it to an address the attacker controlled. That meant that the executive wouldn’t see email from the scam targets while the email gets forwarded to the attackers. At the time it appeared that Office 365 didn’t have any features for sending automatic audit alerts for such changes. I think that all changes to executive email accounts should trigger alerts to the corporate security team (in that case me). One would hope that such exploitation would be a major wake-up call for the company but it wasn’t. It was never discovered how the attacker got access to the account, I presume it was by compromising a personal computer of the executive which they used for company purposes. Having a strong separation of hardware used for work and hardware for personal use is a really good thing.At the same company every time the CEO went on a scheduled trip there would be email sent impersonating him claiming that money needed to be transferred. It was never discovered how the attackers knew when he was on a trip. Was the CEO telling people on LinkedIn about his plans or something? Was his calendar shared to someone outside the company? Was there an employee leaking information? We never found out and surprisingly the executive team didn’t think this was a problem. It’s not necessarily bad for the CEO to publicise their trips even if that alerts hostile parties, but everyone needs to know what the situation is. An unexplained attack is more concerning than a known attack that can be predicted and dealt with.The role of CEO has a unique combination of being able to authorise funds transfers while also being able to reject other security methods. You can tell a line manager that they need to follow the process for a $10 purchase but you can’t necessarily tell the CEO that they need to follow the process for $100,000. Even if the CEO always follows the process for funds transfers you have to convince all the people involved in funds transfers that the CEO will follow the process and any unexpected email demanding an immediate transfer should be rejected.A final problem is getting executives to understand the importance of computer security. My experience is that getting a CTO to adhere to good security practices can be a challenge and that even on the rare occasions someone like me gets to communicate with the CEO it’s not possible to convince them to change anything.Most computer security problems end up as people problems.]]></content:encoded></item><item><title>Otto Kekäläinen: Debcraft v1.0 released: Easy, fast and secure way to build Debian packages</title><link>https://optimizedbyotto.com/post/debcraft-1-0-released/</link><author>Otto Kekäläinen</author><category>linux</category><pubDate>Mon, 26 Oct 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Debcraft is a tool that automates most of the repetitive and error-prone steps related to Debian packaging. It makes it easy to build  packages from source without having to manually prepare build environments. It clearly shows what changed in the build artifacts between two builds, automates parts of importing new upstream versions, and can automatically apply repetitive fixes to the packaging source code, including committing them in git.While doing all of this, it also explains what it does and helps users learn best practices in Debian packaging, making the overall experience much easier and more fun than with any other tool before, while also being secure and fast.Try out Debcraft 1.0 now!
+Or network? Why is it still normal, in 2026, to run a Desktop system like that?]]></content:encoded></item><item><title>Otto Kekäläinen: Debcraft v1.0 released: Easy, fast and secure way to build Debian packages</title><link>https://optimizedbyotto.com/post/debcraft-1-0-released/</link><author>Otto Kekäläinen</author><category>linux</category><pubDate>Mon, 26 Oct 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Debcraft is a tool that automates most of the repetitive and error-prone steps related to Debian packaging. It makes it easy to build  packages from source without having to manually prepare build environments. It clearly shows what changed in the build artifacts between two builds, automates parts of importing new upstream versions, and can automatically apply repetitive fixes to the packaging source code, including committing them in git.While doing all of this, it also explains what it does and helps users learn best practices in Debian packaging, making the overall experience much easier and more fun than with any other tool before, while also being secure and fast.Try out Debcraft 1.0 now!
 Debcraft can be installed simply by running  on a recent version of Debian or Ubuntu. Check with  that you have . The latest version can also always be installed from source at salsa.debian.org/debian/debcraft (does not require compiling anything).Debcraft was designed to offer the following three main benefits:Build any Debian/Ubuntu package by simply running  in the checked-out Debian packaging git repository.If the orig upstream source code tarball is neither already present nor available on a  branch, the exact upstream tarball is downloaded from the Debian archive.Users are spared from having to manually prepare ahead or maintain build environments. Debcraft builds create a container on-the-fly (both Podman and Docker supported), built using the target Debian or Ubuntu suite in  and with exact build dependencies from .Commands ,  and  automate recurring package maintenance tasks and help maintainers produce high-quality, up-to-date packages, run Salsa CI, pass autopkgtest in Debian CI, and stay in sync across Debian archives and packaging git repositories.The command output is (relatively) easy to read, and it also teaches users about Debian packaging .Container layer caching is utilized to make builds  blazingly fast.If an apt-cacher-ng instance or equivalent is present, it will automatically be used.The build phase happens inside hermetic containers with no network access. This ensures all dependencies are properly managed and that the built binaries are as trustworthy as the source code they were built from.Using containers also protects the host system from getting polluted with extra development libraries, and adds an extra layer of protection to prevent anything malicious in the source code from accessing secrets on the host system.The additional logs provided by Debcraft also help audit changes in Debian package sources and build artifacts.Result of many years of development
 The first commit in the git repository is from 2020 under the name . The project was renamed to Debcraft in a commit on December 8th, 2023. I have been developing this tool fairly actively since 2024 and using it for all my packaging, “dogfooding” so to say.Now, in October 2026, it was time to release Debcraft v1.0 as it has had extensive real-world use and iteration based on countless different packages and multiple users. Users have included both experienced fellow Debian Developers and lots of people who just started learning how Debian packaging works. As I mentor dozens of new contributors to Debian, I have seen that the latter group seems to benefit the most from Debcraft and its ease of use and built-in guidance, while to the more experienced developers the main benefit is having less details to remember and doing less mistakes.The code is intentionally written entirely in shell script to keep the barrier to code contribution as low as possible. It is also very easy to debug, as any command can be run with  to emit step-by-step information about what it is doing, and being Bash scripts, injecting  anywhere in the code will emit an even more detailed trace of every subcommand executed. if you aspire to become a Debian Developer, and want to follow my examples in using state-of-the-art tooling and collaborate using salsa.debian.org, feel free to reach out for mentorship. I am glad to see more people contribute to Debian!]]></content:encoded></item><item><title>Amin Bandali: Living healthier</title><link>https://www.shemshak.org/~amin/living-healthier.html</link><author>Amin Bandali</author><category>linux</category><pubDate>Fri, 23 Oct 2026 22:30:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Earlier this week I had a coaching session with
 Protesilaos, where we focused
@@ -722,219 +1134,4 @@ attitude that the exercise is part of our regular effort that we do
 consistently all the time.Working on wellness and living healthier is a matter of
 moderation, and building capacity over time.  I will give it
 the time and attention it needs, without rushing, and enjoy
-the journey to becoming a healthier version of myself.Take care, and so long for now.]]></content:encoded></item><item><title>Reproducible Builds (diffoscope): diffoscope 335 released</title><link>https://diffoscope.org/news/diffoscope-335-released/</link><author>Reproducible Builds (diffoscope)</author><category>linux</category><pubDate>Fri, 23 Oct 2026 00:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[The diffoscope maintainers are pleased to announce the release of diffoscope
-version . This version includes the following changes:[ Chris Lamb ]
-* Support the dumppdf binary being called dumppdf.py on the host system.
-* Update copyright years.
-* Fix a silly "prepend" typo.
-]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 18: Signed division</title><link>http://blog.sesse.net/blog/tech/2026-10-21-23-19_decompilation_patterns_part_18_signed_division.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Wed, 21 Oct 2026 21:30:20 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[As promised, the last one (for now?), and this one blew my mind the first
-time I saw it:    var_v0 = sp4014;
-    if ((s32) sp4014 < 0) {
-        var_v0 = sp4014 + 0x7FF;
-    }
-    temp_s1 = 0x800 - (sp4014 - (((s32) var_v0 >> 0xB) << 0xB));
-There's actually two things going on here. First, the compiler
-is faking a signed division using shifting (which rounds down) as a building block:
-If the value is negative, then you add a bias to make shift into round-up.
-(The right-shift by 0xB, or 11, is exactly a division by 0x800.)So this means what we're looking at is:    var_v0 = (s32) sp4014 / 0x800;
-    temp_s1 = 0x800 - (sp4014 - var_v0 * 0x800);
-which reduces further to:    temp_s1 = 0x800 - ((s32) sp4014 % 0x800);
-Tada. That's it. Now you know all the tricks, except those that I don't know
-or that I forgot. You don't need the LLM. Have fun. :-)Edit: Corrected a thinko; of course, MIPS has signed division.
-This is for power-of-two optimizations only.]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 17: Loop rotation</title><link>http://blog.sesse.net/blog/tech/2026-10-20-23-33_decompilation_patterns_part_17_loop_rotation.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Tue, 20 Oct 2026 22:33:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Occasionally, you'll see code like this (after initial cleanup):    var_v0_2 = crc & 0x80000000;
-    do {
-       if (var_v0_2 != 0) {
-           crc = (crc << 1) ^ 0x1EDC6F41;
-       } else {
-           crc <<= 1;
-       }
-       var_a0 += 1;
-       var_v0_2 = crc & 0x80000000;
-    } while (var_a0 < 8U);
-The thing with  is unnatural. GCC sometimes does these loop rotation tricks, seemingly
-to save registers (don't ask me how exactly it does). You want to un-rotate
-back into:    do {
-       var_v0_2 = crc & 0x80000000;
-       if (var_v0_2 != 0) {
-           crc = (crc << 1) ^ 0x1EDC6F41;
-       } else {
-           crc <<= 1;
-       }
-       var_a0 += 1;
-    } while (var_a0 < 8U);
-and then of course, you can clean up the rest:for (i = 0; i < 8; ++i) {
-    if (crc & 0x80000000) {
-        crc = (crc << 1) ^ 0x1EDC6F41;
-    } else {
-        crc <<= 1;
-    }
-}
-Last one tomorrow, I think.]]></content:encoded></item><item><title>Thadeu Lima de Souza Cascardo: Restricting device memory usage on Linux 7.3</title><link>https://cascardo.eti.br/blog/dmem_cgroup_7.3/</link><author>Thadeu Lima de Souza Cascardo</author><category>linux</category><pubDate>Tue, 20 Oct 2026 17:19:57 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Linux cgroups has been used for a while to group processes and control their access to certain system resources. One of those resources is memory, through the use of memcg. That control is dynamic, allowing for cgroups to setup a minimal and a maximal amount of memory, as well as low and high thresholds, which will control the reclaim process.But what about device memory that is not available as system RAM? Memory that is not available to the Linux page allocator? One of those device memories is GPU VRAM.That's where the dmem cgroup controller comes in. Introduced in Linux 6.14, it was first adopted by the Intel Xe driver. In Linux 6.15, AMD amdgpu driver also adopted it. In 7.3, it was adopted by nouveau.Such a cgroup controller allows the system to be configured such that a workload, be it a browser, a game, or another GPU rendering process can have some minimal VRAM available. Or it can prevent one of these processes from using all VRAM, preventing your compositor from using it, for example.Let's go through the system knobs that are available to control this and what's new in Linux 7.3.dmem regions and dmem.capacitySince a given system might have multiple GPUs, there might be multiple device memory regions. So, on dmem, each such region is described by a name. Every dmem cgroup setting file will contain one line per region. One of those files shows the capacity of each region in bytes and is present only in the root cgroup.After enabling the dmem cgroup with the following command:# echo +dmem > /sys/fs/cgroup/cgroup.subtree_control
-One can inspect the capacity of any available regions by looking at  at the root cgroup:# cat /sys/fs/cgroup/dmem.capacity
-drm/0000:03:00.0/vram 8573157376
-That shows that the GPU at PCI address 0000:03:00.0 has a 8176MiB VRAM dmem region.When introduced at 6.14, the following settings were available.In every dmem cgroup, including the root cgroup, the dmem.current is a read-only file that shows the current usage of each region by the given cgroup.# cat /sys/fs/cgroup/user.slice/dmem.current
-drm/0000:03:00.0/vram 292757504
-Here, it shows that user.slice cgroup is currently using above 292 MB of VRAM.# cat /sys/fs/cgroup/dmem.current
-drm/0000:03:00.0/vram 311377920
-Here, we can check that total system usage is above 311 MB.Excluding the root cgroup, dmem cgroups can control the maximal number of bytes that can be allocated from a region by processes in that cgroup. If an allocation moves the usage above the max setting, it will be refused. In that case, the allocation might be attempted at system memory or it might trigger eviction, depending on the allocation parameters and the driver.Here, the  value has special meaning, which is unrestricted usage.# echo drm/0000:03:00.0/vram 536870912 > /sys/fs/cgroup/user.slice/dmem.max
-# cat /sys/fs/cgroup/user.slice/dmem.max
-drm/0000:03:00.0/vram 536870912
-# echo drm/0000:03:00.0/vram max > /sys/fs/cgroup/user.slice/dmem.max
-# cat /sys/fs/cgroup/user.slice/dmem.max
-drm/0000:03:00.0/vram max
-dmem.min, also not available on the root cgroup, will control the eviction process - when memory needs to be moved out of VRAM to make room for other VRAM allocations. If an object belongs to a cgroup which is using less than its min setting, it will not be considered for eviction. It effectively works as a hard protection such that the cgroup can use at least the minimal setting.Given multiple cgroups may set a minimal value that exceeds the device memory capacity, it computes an effective minimal depending on the hierarchy.While dmem.min works as a hard limit, dmem.low is a soft limit that will prevent eviction in case other objects from different cgroups are available for eviction. That is, the system will try to evict from different, possibly unprotected cgroups, before it tries to evict from a cgroup if evicting would leave its usage below the value set as dmem.low.Recent developments in Linux 7.3Some new changes have been recently introduced in the dmem cgroup controller and its integration with GPUs.One of those is a new read-only file, , which was introduced to allow the peak usage of a region in a cgroup to be inspected.Also, Linux 7.3 fixed certain scenarios where a given cgroup would not be able to allocate VRAM up to its minimal or low limits if other processes had already allocated most of VRAM, even though they had no such limits set.Changing multiple regions' settings in a single write was possible before 7.3, but it was prone to failures which would not be reported to userspace and might have left the values partially updated. Starting with 7.3, only one region may be updated per write.And, finally, prior to 7.3, setting  in a cgroup that was using more than the new setting would silently fail. Now, there is a mechanism that allows a reclaim mechanism to be triggered. That way, when a process writes to  and sets a maximal value below the current usage, it will wait (unless  is used) for the reclaim process to move objects out of VRAM until the usage gets below the maximal value. If that is not possible for some reason, the setting will still be in place, restricting further alloctions by that cgroup.]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 16: Tail reduplication</title><link>http://blog.sesse.net/blog/tech/2026-10-19-21-53_decompilation_patterns_part_16_tail_reduplication.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Mon, 19 Oct 2026 20:53:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[We're nearing the end soon, I promise. Here's one that I see all the time:     ...
-         } else {
-             var_t0_5 = temp_a0_3 - 0x140;
-             var_a2_5 = 0xA0 - temp_a3_5;
-             goto block_45;
-         }
-     } else {
-         var_t0_5 = 0xA0 - temp_a0_3;
-         var_a2_5 = temp_a3_5 - 0x118;
-block_45:               
-         var_v0_3 = var_t0_5 + 0xA0;
-         var_v1_4 = var_a2_5 + 0x78;
-     }
-So, eh, what's that goto doing there? What happened was that the compiler
-helpfully figured it could help with some tail deduplication; someone
-wrote the same code twice, and the compiler figured taking the cost
-of a branch was better than keeping it duplicated. (In a sense, it's
-the opposite of inlining. Ish.) In most cases, it's as simple as
-copying the block and then you can remove the label:     ...
-         } else {
-             var_t0_5 = temp_a0_3 - 0x140;
-             var_a2_5 = 0xA0 - temp_a3_5;
-             var_v0_3 = var_t0_5 + 0xA0;
-             var_v1_4 = var_a2_5 + 0x78;
-         }
-     } else {
-         var_t0_5 = 0xA0 - temp_a0_3;
-         var_a2_5 = temp_a3_5 - 0x118;
-         var_v0_3 = var_t0_5 + 0xA0;
-         var_v1_4 = var_a2_5 + 0x78;
-     }
-Sometimes, these are nested, with multiple tails goto-ing into each other,
-so in that case, you'll need to reduplicate multiple times.
-Make sure you actually come out on the correct side afterwards,
-though.As an extra complication, the code is deduplicated not on the C statement level, but on
-RTL instructions, so if you're calling functions with five parameters
-of more (which requires pushing parameters onto the stack), m2c can
-get really confused and start throwing  at you on the
-receiving side because it's not clear at all where the parameters
-would be coming from.]]></content:encoded></item><item><title>Dirk Eddelbuettel: myman 0.12.0 on CRAN: Two new waves!</title><link>http://dirk.eddelbuettel.com/blog/2026/10/18#myman_0.12.0</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Sun, 18 Oct 2026 20:00:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Another new and exciting version of our still-new package myman reached CRAN this morning, and has been
-built for r2u and on
-r-universe. The
-matching Python package
-has also been updated. The package offers twenty one hundred eighty four
- posts by Kevin Kruse
-made on bsky during the summer of 2026.
-Each wave picked at one particular public persona. This package wrapse
-these up in the style of packages like fortunes or gaussfacts.This release regroups two new waves of posts mocking, respectively,
-Peter Thiel and Michael Tracy, and make a small update to continuous
-integration. The short NEWS entry for this release follows.Changes in version 0.12.0
-(2026-10-18)New waves eleven (100 posts) and twelve (100 posts) made last
-week; total is now 2184 postsSmall update to continuous integration]]></content:encoded></item><item><title>Ludovic Rousseau: New version of pcsc-lite: 2.5.3</title><link>https://blog.apdu.fr/posts/2026/10/new-version-of-pcsc-lite-253/</link><author>Ludovic Rousseau</author><category>linux</category><pubDate>Sun, 18 Oct 2026 14:27:08 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[pcsc-lite is a Free Software
-implementation of the PC/SC
-(also known as WinSCard) API for Unix systems. It provides an API for
-using smart cards and
-smart card readers.: preserve card sessions across polkit restartscorrectly decode all ATRs (fix the fix suggested by AI)Fix authorization for uid > 65536]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 15: Redundant if-for</title><link>http://blog.sesse.net/blog/tech/2026-10-18-10-47_decompilation_patterns_part_15_redundant_if_for.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Sun, 18 Oct 2026 09:47:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Yet another way of writing for loops:    var_a2_4 = ...
-    if (var_a2_4 < 0x78) {
-        ...
-        do {
-            ...
-            var_a2_4 += 1;
-        } while (var_a2_4 < 0x78);
-    }
-This extra if is merely there because the compiler wasn't able to prove
-that the variable didn't start below the bound, so it can't rewrite
-the while-do to a do-while without that extra check. So the rewrite
-still reads:for (var_a2_4 = ...; var_a2_4 < 0x78; ++var_a2_4) {
-    ...
-}
-possibly with the initializer skipped, if it comes from something
-complex earlier.]]></content:encoded></item><item><title>Dirk Eddelbuettel: RcppArmadillo 15.6.2-1 on CRAN: New Upstream</title><link>http://dirk.eddelbuettel.com/blog/2026/10/17#rcpparmadillo_15.6.2-1</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Sat, 17 Oct 2026 21:41:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Armadillo is a powerful
-and expressive C++ template library for linear algebra and scientific
-computing. It aims towards a good balance between speed and ease of use,
-has a syntax deliberately close to Matlab, and is useful for algorithm
-development directly in C++, or quick conversion of research code into
-production environments. RcppArmadillo
-integrates this library with the R environment and language–and is
-widely used by (currently) 1370 other packages on CRAN, downloaded 49.4 million
-times (per the partial logs from the cloud mirrors of CRAN), and the CSDA paper (preprint
-/ vignette) by Conrad and myself has been cited 735 times according
-to Google Scholar.This versions updates to the 15.6.2 upstream Armadillo release made
-yesterday. It, along with 15.6.1 release we incorporated earlier,
-addresses only minor issues and should not present any user-facing
-changes. As usual, we did run full reverse-depdency checks against the
-over 1300 ackages, and did not find anything. As usual, we aim to
-accommodate the desired CRAN
-cadences for uploads and try not to exceed six in six months—so we did
-not ship 15.6.1-1 there. The package has also already been updated for
-Debian, built for r2u and r-universe, and
-will build shortly at CRAN for
-the different binary releases.All changes since the last CRAN release follow.Changes in
-RcppArmadillo version 15.6.2-1 (2026-10-16)Upgraded to Armadillo release 15.6.2 (Medium Roast Cortado)Faster inplace addition of  expressionsChanges
-in RcppArmadillo version 15.6.1-1 [github-only] (2026-10-02)Upgraded to Armadillo release 15.6.1 (Medium Roast Cortado)Fix for failures in  when using the (non-default)
-"std" method]]></content:encoded></item><item><title>Steinar H. Gunderson: Decompilation patterns, part 14: Strength increase</title><link>http://blog.sesse.net/blog/tech/2026-10-17-21-29_decompilation_patterns_part_14_strength_increase.html</link><author>Steinar H. Gunderson</author><category>linux</category><pubDate>Sat, 17 Oct 2026 20:29:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[Let's look at the entire loop from yesterday:    u16 spE10;
-    u16 *var_v0_2;
-
-    ...
-
-    var_t1_2 = 0x7F;
-    var_v0_2 = &spE10 + 0xFE;
-    do {
-        *var_v0_2 = 0;
-        var_t1_2 -= 1;
-        var_v0_2 -= 2;
-    } while (var_t1_2 >= 0);
-What's going with the pointer arithmetic here? Why is it indexing
-out-of-bounds?The first thing to notice is that m2c doesn't really take into account
-that arithmetic on pointers in C is multiplied by the size of the element.
-And obviously, spE10 is the root of some array. So corrected, this reads:    u16 spE10[0x80];  // Modified.
-    u16 *var_v0_2;
-
-    ...
-
-    var_t1_2 = 0x7F;
-    var_v0_2 = spE10 + 0x7F;  // Modified.
-    do {
-        *var_v0_2 = 0;
-        var_t1_2 -= 1;
-        var_v0_2 -= 1;  // Modified.
-    } while (var_t1_2 >= 0);
-We saw yesterday how we should rewrite the iteration back to a for loop,
-but also, most likely, the pointer arithmetic here came from ; the compiler took a multiplication operation and rewrote it
-to a “weaker” operation (subtraction) since that's typically cheaper,
-at the cost of making the values dependent, an easy trade. So we can
-rewrite it back into multiplication:    var_t1_2 = 0x7F;
-    do {
-        var_v0_2 = spE10 + var_t1_2;
-        *var_v0_2 = 0;
-        var_t1_2 -= 1;
-    } while (var_t1_2 >= 0);
-and now it's easy to see that the loop should read:    for (i = 0; i < 0x80; ++i) {
-        spE10[i] = 0;
-    }
-and then, of course, the array should get a better name.Sometimes the loop counter will go backwards while the pointer will go
-forwards, which is also completely normal, especially if there's side
-effects. The compiler will reverse one but not the other.]]></content:encoded></item><item><title>Dirk Eddelbuettel: RcppSimdJson 0.1.17 on CRAN: Updates</title><link>http://dirk.eddelbuettel.com/blog/2026/10/16#rcppsimdjson_0.1.17</link><author>Dirk Eddelbuettel</author><category>linux</category><pubDate>Fri, 16 Oct 2026 19:56:00 +0000</pubDate><source url="https://planet.debian.org/">Planet Debian</source><content:encoded><![CDATA[RcppSimdJson
-wraps the fantastic and genuinely impressive simdjson library by Daniel Lemire and collaborators. Via
-very clever algorithmic engineering to obtain largely branch-free code,
-coupled with modern C++ and newer compiler instructions, it results in
-parsing gigabytes of JSON parsed per second which is quite
-mindboggling. The best-case performance is ‘faster than CPU speed’ as
-use of parallel SIMD instructions and careful branch avoidance can lead
-to less than one cpu cycle per byte parsed; see the video of the talk by Daniel Lemire
-at QCon.This release is a small increment relative to the 0.1.6
-release last week that got us (upstream) version 5.0.2 with many
-notable changes and sizeable speed gains on all fronts, including the
-interface from R. However, this failed to compile at CRAN on macOS x86_64 as the
-machine is setup for only partial support of C++20: no ranges, no
-concepts. So we now test, and fall back to C++17 if the test compilation
-fails. Upstream, meanwhile, already got to 5.0.5 which is included. It
-also gets us improved handling of disabling pragmas which we hope will
-survive CRAN checks.The brief NEWS entry for this release follows.Changes in
-version 0.1.17 [unreleased] (2026-10-xx)Compilation starts with a C++20 feature test; if this fails C++17
-is used (Dirk in #111
-fixing #110) was upgraded to version 5.0.5
-(Daniel in #112)]]></content:encoded></item></channel></rss>
+the journey to becoming a healthier version of myself.Take care, and so long for now.]]></content:encoded></item></channel></rss>
